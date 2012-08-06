@@ -3,12 +3,12 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>huoxu.me</title>
+	<title>一个很cool的项目: r³ - huoxu.me</title>
 	<meta name="author" content="Tony.lee">
 
 	
 	<meta name="description" content="r³ 是一个基于python的map reduce 引擎. 后端使用redis, 它的设计理念是:To be simple. 和任意一个MapReduce理论完备的项目[Haoop,Spark,Dpark..etc]一样.
-它也分为: 输入流, mappers 和 reducers, &hellip;">
+它也分为: 输入流, mappers 和 reducers, 三个处理步骤 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -70,13 +70,9 @@
 	
 		
 	
-	<div id="content" class="inner">
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/">一个很cool的项目: R³</a></h1>
-	<div class="entry-content">
-		<p>r³ 是一个基于python的map reduce 引擎. 后端使用redis, 它的设计理念是:To be simple.</p>
+	<div id="content" class="inner"><article class="post">
+	<h1 class="title">一个很cool的项目: R³</h1>
+	<div class="entry-content"><p>r³ 是一个基于python的map reduce 引擎. 后端使用redis, 它的设计理念是:To be simple.</p>
 
 <p>和任意一个MapReduce理论完备的项目[Haoop,Spark,Dpark..etc]一样.
 它也分为: 输入流, mappers 和 reducers, 三个处理步骤.</p>
@@ -199,10 +195,7 @@ class CountWordsReducer:
 <p><img src="https://github.com/heynemann/r3/raw/master/r3-web-3.jpg" alt="image alt" /></p>
 
 <p>项目地址: <code>[https://github.com/heynemann/r3][6]</code></p>
-
-		
-		
-	</div>
+</div>
 
 
 <div class="meta">
@@ -225,137 +218,20 @@ class CountWordsReducer:
 	
 </div></article>
 
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/07/27/git-tricks-stash/">Git Tricks: Stash</a></h1>
-	<div class="entry-content">
-		<blockquote><p>Git tricks: stash</p>
-
-<p>Git’s stash functionality is something
-that you won’t need very often (in my
-experience, ever) if you’re just
-hacking away at something in private.
-However, as soon as you introduce
-other factors
-- a boss, say - you’ll find you need to tweak your work-flow to make
-yourself more interruptible.</p>
-
-<p>Sometimes, something needs fixing
-ASAP, and you have 260 build-breaking
-lines an hour away from being
-commit-worthy - you want to store that
-code safely somewhere while you work
-on the emergency. Without git stash,
-you have two possibilities.</p></blockquote>
-
-<ol>
-<li><p>Create a temporary branch, commit
-the broken code, and later abuse git
-reset to undo the commit, Pure git,
-very ugly, and it’s easy to bork
-things with the git reset call.</p></li>
-<li><p>Clone a new copy of the repository.
-Much simpler, but not feasible for
-larger repositories, and incredibly
-hacky.</p></li>
-</ol>
-
-
-<p>Git stash introduces the idea of a temporary commit, orphaned in the sense that it does not belong to any branch, but can be restored later, on top of any other commit. The simplest usage:</p>
-
-<pre><code>$ git stash
-$ fix emergency
-$ git commit -a -m "Emergency fix"
-$ git stash pop
-</code></pre>
-
-<p>Of course, this being git, every feature has to be a little more powerful than that. The commit stored by stash is just like any other commit - it’s a patch which can be applied anywhere. Say you have a lot of branches flying around, and you accidentally start to make a change to the wrong one:</p>
-
-<pre><code>$ git checkout widget-a
-$ # add widget B
-$ git stash -u
-$ git checkout widget-b
-$ git stash pop
-</code></pre>
-
-<p>The -u (equivalent to &#8211;include-untracked) put all untracked files in the stash as well, meaning that when you check out widget-b, you won’t have to re-compile your changes.</p>
-
-<p>Or say you want to pull without committing, but some of your changes conflict:</p>
-
-<pre><code>$ git stash &amp;&amp; git pull &amp;&amp; git stash pop
-</code></pre>
-
-<p>You can also drop and list stashes, and apply them without removing them from the stash stack.</p>
-
-<p>Article from : [http://bytbox.net/blog/2012/07/git-stash.html][1]</p>
-
-		
-		
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
 
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-27T17:33:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time></div>
-	<div class="tags">
 
 </div>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/07/25/first-blog-with-octopress/">First Blog With Octopress</a></h1>
-	<div class="entry-content">
-		<h1>尝试使用octopress 基于github pages 的方式写blog</h1>
-
-<blockquote><h2>其中还是有很多个坑的. 但是上手很快.</h2>
-
-<p>参考
-[1]:    <a href="http://en.wikipedia.org/wiki/Markdown">Markdown</a>
-[2]:    <a href="http://octopress.org/docs/blogging/">octopress</a></p></blockquote>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-25T16:24:00+08:00" pubdate data-updated="true">Jul 25<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-</div></article>
-
-<nav id="pagenavi">
-    
-    
-    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
-</nav></div>
 	<footer id="footer" class="inner">Copyright &copy; 2012
 
     Tony.lee
