@@ -9,6 +9,10 @@ categories:
 ======================
 
 > 其中还是有很多个坑的. 但是上手很快.
+
+>> 另 发现一个Octopress Markdown 语法高亮插件, 聊胜于无.
+
+> <a href="https://github.com/tangledhelix/vim-octopress">vim-octopress</a>
 --------------------
 
 > 参考

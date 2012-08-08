@@ -4,11 +4,12 @@
 
 url: http://xuanhan863.github.com
 title: huoxu.me
-subtitle: A blogging framework for hackers.
+subtitle: hackers.
 author: Tony.lee
+#twitter: twitter.com/zzzzhe
 simple_search: http://google.com/search
-description:
-
+description: "Tony Lee\'s Blog"
+author_info: <a href="http://blog.huoxu.me/about">Tony Lee</a>
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
 # You can customize the format as defined in
 # http://www.ruby-doc.org/core-1.9.2/Time.html#method-i-strftime
@@ -36,7 +37,7 @@ category_dir: blog/categories
 markdown: rdiscount
 pygments: false # default python pygments have been replaced by pygments.rb
 
-paginate: 10          # Posts per page on the blog index
+paginate: 6          # Posts per page on the blog index
 pagination_dir: blog  # Directory base for pagination URLs eg. /blog/page/2/
 recent_posts: 5       # Posts in the sidebar Recent Posts section
 excerpt_link: "Read on &rarr;"  # "Continue reading" link text at the bottom of excerpted articles
@@ -61,13 +62,13 @@ Underscore: http://underscorejs.org/underscore-min.js
 # ----------------------- #
 
 # Github repositories
-github_user:
+github_user: xuanhan863
 github_repo_count: 0
 github_show_profile_link: true
 github_skip_forks: true
 
 # Twitter
-twitter_user:
+twitter_user: 
 twitter_tweet_count: 4
 twitter_show_replies: false
 twitter_follow_button: true
@@ -80,7 +81,7 @@ google_plus_one_size: medium
 
 # Google Plus Profile
 # Hidden: No visible button, just add author information to search results
-googleplus_user:
+googleplus_user: 
 googleplus_hidden: false
 
 # Pinboard
