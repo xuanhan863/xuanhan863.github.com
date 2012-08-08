@@ -3,7 +3,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>huoxu.me</title>
+	<title>一个帅气的Bresenham's 算法实现 - huoxu.me</title>
 	<meta name="author" content="{"name"=>"Tony.lee", "twitter"=>"twitter.com/zzzzhe"}">
 
 	
@@ -90,13 +90,9 @@
 </script>
 
 	
-	<div id="content" class="inner">
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/08/%5B%3F%5D-ge-shuai-qi-de-bresenhams-suan-fa-shi-xian/">一个帅气的Bresenham&#8217;s 算法实现</a></h1>
-	<div class="entry-content">
-		<blockquote><p> 首先得先了解
+	<div id="content" class="inner"><article class="post">
+	<h1 class="title">一个帅气的Bresenham's 算法实现</h1>
+	<div class="entry-content"><blockquote><p> 首先得先了解
  Bresenham算法原理是:
 　　对各行,各列像素中心先构造一组虚拟网格线,按直线从起点到终点的
 　　顺序计算直线各垂直网格线的交点,然后确定该列像素中与此交点最近
@@ -228,10 +224,7 @@
 
    
 
-
-		
-		
-	</div>
+</div>
 
 
 <div class="meta">
@@ -254,294 +247,20 @@
 	
 </div></article>
 
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/">一个很cool的项目: R³</a></h1>
-	<div class="entry-content">
-		<p>r³ 是一个基于python的map reduce 引擎. 后端使用redis, 它的设计理念是:To be simple.</p>
-
-<p>和任意一个MapReduce理论完备的项目[Haoop,Spark,Dpark..etc]一样.
-它也分为: 输入流, mappers 和 reducers, 三个处理步骤.</p>
-
-<p><img src="https://github.com/heynemann/r3" alt="image alt" /></p>
-
-<h3>图显示不了了, 原因不明</h3>
-
-
-<p>实践验证理论, Let&#8217;s do it.</p>
-
-<p>先简单的通过pip安装:</p>
-
-<pre><code>pip install r3
-</code></pre>
-
-<p>安装完之后, 会有三个命令:r3-app, r3-map,  r3-web.</p>
-
-<p>看一个常见的Mapreduce场景计算: 对文档单词量的统计.</p>
-
-<p>得有一个存储数据的地方,我先假设你有一个redis实例, 运行在 127.0.0.1:7778</p>
-
-<p>运行:</p>
-
-<pre><code>r3-app --redis-port=7778 --redis-pass=r3 -c config.py
-</code></pre>
-
-<p>上边运行的config.py, 作为一个接口配置, 它包含了输入和reduce的输出:</p>
-
-<pre><code>INPUT_STREAMS = [
-    'test.count_words_stream.CountWordsStream'
-]
-
-REDUCERS = [
-    'test.count_words_reducer.CountWordsReducer'
-]
-</code></pre>
-
-<p>Ok, 首先接触Input Stream.</p>
-
-<p>一个典型的输入流场景,对文档样本进行计数的话,首先应该打开输入流处理器类的文件,读取文件中的行,然后返回的每一行给r3-app.</p>
-
-<p><strong>input stream</strong></p>
-
-<p>它可能是这样的:</p>
-
-<pre><code>from os.path import abspath, dirname, join
-
-class CountWordsStream:
-    job_type = 'count-words'
-    group_size = 1000
-
-    def process(self, app, arguments):
-        with open(abspath(join(dirname(__file__), 'chekhov.txt'))) as f:
-            contents = f.readlines()
-
-        return [line.lower() for line in contents]
-</code></pre>
-
-<p>指定一个job的类型: job_type = &#8216;count-words&#8217;
-group_size = 1000,指定了一个输入流的大小.. 比如:1000, 那每个mapper分配到的处理大小就是1000行, 每1000行, 当做一次Input Stream做一次map.</p>
-
-<p><strong>Running Mappers</strong></p>
-
-<p>使用一个CountWordsMapper类来运行我们的映射.</p>
-
-<pre><code>r3-map --redis-port=7778 --redis-pass=r3 --mapper-key=mapper-1 --mapper-class="test.count_words_mapper.CountWordsMapper"
-</code></pre>
-
-<p>它继承自r3 worker的Mapper类.</p>
-
-<pre><code>from r3.worker.mapper import Mapper
-
-class CountWordsMapper(Mapper):
-    job_type = 'count-words'
-
-    def map(self, lines):
-        return list(self.split_words(lines))
-
-    def split_words(self, lines):
-        for line in lines:
-            for word in line.split():
-                yield word, 1
-</code></pre>
-
-<p><strong>Reducing</strong></p>
-
-<p>在所有Input Stream都已经被Mapper合并处理后.. 这是一个连续的过程.. 我猜想, 应该和Dpark 类似, 也是lazy的. 需要数据时才会真正计算.</p>
-
-<p>那么, Reduce 应该这样写了:</p>
-
-<pre><code>from collections import defaultdict
-
-class CountWordsReducer:
-    job_type = 'count-words'
-
-    def reduce(self, app, items):
-        word_freq = defaultdict(int)
-        for line in items:
-            for word, frequency in line:
-                word_freq[word] += frequency
-
-        return word_freq
-</code></pre>
-
-<p>必须得指定job_type, 这可是reduce和map的血脉关系所在.. = =</p>
-
-<p><strong>测试</strong></p>
-
-<p>我们已经有一个R3应用程序运行在<a href="http://localhost:8888/count-words">http://localhost:8888</a>.</p>
-
-<p>通过<a href="http://localhost:8888/count-words">http://localhost:8888/count-words</a> 访问我们刚刚的文档统计job.</p>
-
-<p><strong>r³ 基于web的监控台 </strong></p>
-
-<p><img src="https://github.com/heynemann/r3/raw/master/r3-web-4.jpg" alt="image alt" /></p>
-
-<p><strong>状态</strong></p>
-
-<p><img src="https://github.com/heynemann/r3/raw/master/r3-web-3.jpg" alt="image alt" /></p>
-
-<p>项目地址: <code>[https://github.com/heynemann/r3][6]</code></p>
-
-		
-		
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
 
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-27T18:28:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time></div>
-	<div class="tags">
 
 </div>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/07/27/git-tricks-stash/">Git Tricks: Stash</a></h1>
-	<div class="entry-content">
-		<blockquote><p>Git tricks: stash</p>
-
-<p>Git’s stash functionality is something
-that you won’t need very often (in my
-experience, ever) if you’re just
-hacking away at something in private.
-However, as soon as you introduce
-other factors
-- a boss, say - you’ll find you need to tweak your work-flow to make
-yourself more interruptible.</p>
-
-<p>Sometimes, something needs fixing
-ASAP, and you have 260 build-breaking
-lines an hour away from being
-commit-worthy - you want to store that
-code safely somewhere while you work
-on the emergency. Without git stash,
-you have two possibilities.</p></blockquote>
-
-<ol>
-<li><p>Create a temporary branch, commit
-the broken code, and later abuse git
-reset to undo the commit, Pure git,
-very ugly, and it’s easy to bork
-things with the git reset call.</p></li>
-<li><p>Clone a new copy of the repository.
-Much simpler, but not feasible for
-larger repositories, and incredibly
-hacky.</p></li>
-</ol>
-
-
-<p>Git stash introduces the idea of a temporary commit, orphaned in the sense that it does not belong to any branch, but can be restored later, on top of any other commit. The simplest usage:</p>
-
-<pre><code>$ git stash
-$ fix emergency
-$ git commit -a -m "Emergency fix"
-$ git stash pop
-</code></pre>
-
-<p>Of course, this being git, every feature has to be a little more powerful than that. The commit stored by stash is just like any other commit - it’s a patch which can be applied anywhere. Say you have a lot of branches flying around, and you accidentally start to make a change to the wrong one:</p>
-
-<pre><code>$ git checkout widget-a
-$ # add widget B
-$ git stash -u
-$ git checkout widget-b
-$ git stash pop
-</code></pre>
-
-<p>The -u (equivalent to &#8211;include-untracked) put all untracked files in the stash as well, meaning that when you check out widget-b, you won’t have to re-compile your changes.</p>
-
-<p>Or say you want to pull without committing, but some of your changes conflict:</p>
-
-<pre><code>$ git stash &amp;&amp; git pull &amp;&amp; git stash pop
-</code></pre>
-
-<p>You can also drop and list stashes, and apply them without removing them from the stash stack.</p>
-
-<p>Article from : [http://bytbox.net/blog/2012/07/git-stash.html][1]</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-27T17:33:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/07/25/first-blog-with-octopress/">First Blog With Octopress</a></h1>
-	<div class="entry-content">
-		<h1>尝试使用octopress 基于github pages 的方式写blog</h1>
-
-<blockquote><p>其中还是有很多个坑的. 但是上手很快.</p>
-
-<blockquote><p>另 发现一个Octopress Markdown 语法高亮插件, 聊胜于无.</p></blockquote>
-
-<h2><a href="https://github.com/tangledhelix/vim-octopress">vim-octopress</a></h2>
-
-<p>参考
-[1]:    <a href="http://en.wikipedia.org/wiki/Markdown">Markdown</a>
-[2]:    <a href="http://octopress.org/docs/blogging/">octopress</a></p></blockquote>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-25T16:24:00+08:00" pubdate data-updated="true">Jul 25<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-</div></article>
-
-<nav id="pagenavi">
-    
-    
-    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
-</nav></div>
 	<footer id="footer" class="inner">Copyright &copy; 2012
 
     {"name"=>"Tony.lee", "twitter"=>"twitter.com/zzzzhe"}
