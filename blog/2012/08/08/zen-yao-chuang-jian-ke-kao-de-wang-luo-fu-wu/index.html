@@ -1,0 +1,214 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>怎么创建可靠的网络服务? - huoxu.me</title>
+	<meta name="author" content="Tony.lee">
+
+	
+	<meta name="description" content="多年来,技术的沉淀于积累,我已经迈上了一个从0到数百万​​用户数十亿网页的量级. 于是萌生一些想法,在此分享一些技巧,不限语言, 不限网站. 我想创建可扩展的和可靠的服务归结为以下: 监视一切: 必须有一个清晰的画面在任何时间上发生了什么事.过去的表现如何,重视日志,记录应用程序中的关键指标, &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="huoxu.me" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">huoxu.me</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:xuanhan863.github.com">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		
+		<a class="github" href="https://github.com/xuanhan863" title="GitHub">GitHub</a>
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+	<form class="search" action="http://google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:xuanhan863.github.com">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h1 class="title">怎么创建可靠的网络服务?</h1>
+	<div class="entry-content"><p>多年来,技术的沉淀于积累,我已经迈上了一个从0到数百万​​用户数十亿网页的量级. 于是萌生一些想法,在此分享一些技巧,不限语言, 不限网站.</p>
+
+<p>我想创建可扩展的和可靠的服务归结为以下:</p>
+
+<p><strong>监视一切:</strong></p>
+
+<pre><code>必须有一个清晰的画面在任何时间上发生了什么事.过去的表现如何,重视日志,记录应用程序中的关键指标,尽量将其可视化,可视化响应时间,pv,以及等等..使用Google Analytics是不够的,你还需要更多强大的辅助工具.
+</code></pre>
+
+<p><strong>积极主动:</strong></p>
+
+<pre><code>主动备份和尽早对未来负载做好规划预期,不要等到网站失去响应的时候才开始想到优化.如果可以,度量关于你的系统可以处理多少更多的用户,这样就可以采取猜测预估,认为哪些策略可以适用.
+</code></pre>
+
+<p><strong>当崩溃发生时的通知:</strong></p>
+
+<pre><code>使用诸如&lt;a href="http://pingdom.com/"&gt;PingDom&lt;/a&gt;类的服务，或像&lt;a href="http://github.com/amix/crash_hound"&gt;crash_hound&lt;/a&gt;的开源库.
+</code></pre>
+
+<p><strong>你可以使用的工具</strong></p>
+
+<p>我用了很多工具,没有必要重新造轮子,我强烈推荐他们.</p>
+
+<p><strong>不要失去对任何事物的实时监控权</strong></p>
+
+<p>我读到有关<a href="https://github.com/etsy/statsd/">statsd</a>和<a href="http://graphite.wikidot.com/">Graphite</a>, 和拜读了这篇文章<a href="http://instagram-engineering.tumblr.com/post/20541814340/keeping-instagram-up-with-over-a-million-new-users-in">Keeping Instagram up with over a million new users in twelve hours. </a></p>
+
+<p>读完这篇文章后,我很兴奋,我花了一天时间去安装statsd+Graphite和运行。Graphite起步有点复杂,但收益很明显,我必须说,它改变了我的生活.这个设置可以让你实时跟踪,却没有任何性能损失（statsd使用非阻塞的UDP通讯）.我跟踪的平均响应时间,错误的数量,注册量,同步命令的平均响应时间等等,跨服务器和跨服务.</p>
+
+<p>这是非常有用的,比如当你做了很多的部署,但你却可以很快地看到你的最新部署是否引入错误或性能问题.</p>
+
+<p>下面是我的Graphite dashboards:</p>
+
+<p><img src="http://amix.dk/uploads/statsd.png"></img></p>
+
+<p><strong>监视性能,如果系统崩溃时能立刻得到通知</strong></p>
+
+<p>Pingdom 是非常有用的一个服务,因为它可以在世界多个地点跟踪性能,当你的网站崩溃时,它可以短信通知你. 并且Pingdom也是公开的,可以让用户跟踪你的正常运行时间和性能（对用户而言,这是非常有用的服务）.</p>
+
+<p>还有一些强大的工具,比如<a href="http://github.com/amix/crash_hound">crash_hound</a>,可以让你的程序得到通知. 例如:我收到一条短信,条件是,如果一个队列crash或它已经失去处理能力. 而我们的通知模块中,大部分都是安装使用不到10行代码的小脚本.</p>
+
+<p>Pingdom的显页面的样子:</p>
+
+<p><img src="http://amix.dk/uploads/pingdom.png"></img></p>
+
+<p><strong>central logger 记录每一个错误</strong></p>
+
+<p>我们有一个中央的日志处理系统,记录着每一个错误,并显示在一个中央位置,对应每一个错误,我们可以看到一个请求的上下文环境.这是一个非常必要的Web服务工具，因为它使你跟踪错误变的非常容易.</p>
+
+<p>下面是我们的中央记录器看起来像:</p>
+
+<p><img src="http://amix.dk/uploads/central_logger.png"></img></p>
+
+<p>我相信有很多开源工具可以做到这一点（但我没有找到最适合我们的,所以我们自己实现了一套）.</p>
+
+<p><strong>SQL monitor</strong></p>
+
+<p>我们有一个SQL聚合查询,它记录着最耗时或最耗资源的查询记录.我们也有一个请求的记录,记录着同样的数据.</p>
+
+<p>如果你想知道你的代码,哪一部分是值得的优化, 那么这两个工具必不可少.</p>
+
+<p>我之前开源了一个工具<a href="http://amix.dk/blog/viewEntry/19359">request logger</a>（它使用非常简单,而且很容易hack.）</p>
+
+<p>这里有一个截图:</p>
+
+<p><img src="http://amix.dk/uploads/request_logger.jpg"></img></p>
+
+<p><strong>监控服务器</strong></p>
+
+<p>亚马逊AWS托管是一种特权，因为他们提供了很多伟大的监控工具（如CPU使用率和报警等,如果你的服务器可能使用超额的资源, 那么这种监控就很有必要）.</p>
+
+<p>以及一些开源工具。在Plurk(一个类微博的网站)，我们使用<a href="http://www.cacti.net/">Cacti</a> 和 <a href="http://www.nagios.org/">Nagios</a>,这两个都是很复杂和强大的工具,值得你花时间去深入研究它, 因为它们可以给你以很cool的可视化图像形式显示正在运行的服务器和服务的状态.</p>
+
+<p>下面是一些亚马逊的监测工具的截图:</p>
+
+<p><img src="http://amix.dk/uploads/ec2.png"></img></p>
+
+<p>我希望这些经验对你们有用.将来如:central logger or SQL monitor 这类有效的监控工具都将开源.</p>
+
+<p>敬请关注,一如既往:happy hacking!</p>
+
+<p>蹩脚译文出自: <a href="http://amix.dk/blog/post/19709#How-to-create-very-reliable-web-services">How to create very reliable web services </a>   Thanks amix.</p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-08T18:53:00+08:00" pubdate data-updated="true">Aug 8<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+</div></article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2012
+
+    Tony.lee
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+
+
+</body>
+</html>
