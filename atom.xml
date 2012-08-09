@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-08-08T18:59:50+08:00</updated>
+  <updated>2012-08-09T21:49:49+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -18,23 +18,28 @@
     <link href="http://xuanhan863.github.com/blog/2012/08/08/zen-yao-chuang-jian-ke-kao-de-wang-luo-fu-wu/"/>
     <updated>2012-08-08T18:53:00+08:00</updated>
     <id>http://xuanhan863.github.com/blog/2012/08/08/zen-yao-chuang-jian-ke-kao-de-wang-luo-fu-wu</id>
-    <content type="html"><![CDATA[<p>多年来,技术的沉淀于积累,我已经迈上了一个从0到数百万​​用户数十亿网页的量级. 于是萌生一些想法,在此分享一些技巧,不限语言, 不限网站.</p>
+    <content type="html"><![CDATA[<p>还记得若干年前的c10k问题,现今软硬件的不断更迭,开源社区的蓬勃壮大,各种问题,似乎已不是什么问题.
+但还是萌生了一些想法,在此分享一些运营技巧,不限语言, 不限网站.</p>
 
-<p>我想创建可扩展的和可靠的服务归结为以下:</p>
+<p>创建可扩展的和可靠的服务归结为以下:</p>
 
 <p><strong>监视一切:</strong></p>
 
-<pre><code>必须有一个清晰的画面在任何时间上发生了什么事.过去的表现如何,重视日志,记录应用程序中的关键指标,尽量将其可视化,可视化响应时间,pv,以及等等..使用Google Analytics是不够的,你还需要更多强大的辅助工具.
+<pre><code>必须有一个清晰的画面在任何时间上发生了什么事.过去的表现如何,
+重视日志,记录应用程序中的可觉察指标,并尽量将其可视化,可视化响应时间,pv,以及等等..
+使用Google Analytics是不够的,你还需要更多强大的辅助工具.
 </code></pre>
 
 <p><strong>积极主动:</strong></p>
 
-<pre><code>主动备份和尽早对未来负载做好规划预期,不要等到网站失去响应的时候才开始想到优化.如果可以,度量关于你的系统可以处理多少更多的用户,这样就可以采取猜测预估,认为哪些策略可以适用.
+<pre><code>主动备份和尽早对未来负载做好规划预期,不要等到网站失去响应的时候才开始想到优化.
+如果可以,度量关于你的系统可以处理多少更多的用户,这样就可以采取猜测预估,认为哪些策略可以适用.
 </code></pre>
 
 <p><strong>当崩溃发生时的通知:</strong></p>
 
-<pre><code>使用诸如&lt;a href="http://pingdom.com/"&gt;PingDom&lt;/a&gt;类的服务，或像&lt;a href="http://github.com/amix/crash_hound"&gt;crash_hound&lt;/a&gt;的开源库.
+<pre><code>使用诸如&lt;a href="http://pingdom.com/"&gt;PingDom&lt;/a&gt;类的服务
+或者像&lt;a href="http://github.com/amix/crash_hound"&gt;crash_hound&lt;/a&gt;的开源库.
 </code></pre>
 
 <p><strong>你可以使用的工具</strong></p>
@@ -104,7 +109,7 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[一个帅气的Bresenham's 算法实现]]></title>
+    <title type="html"><![CDATA[一个高效的Bresenham's 算法实现]]></title>
     <link href="http://xuanhan863.github.com/blog/2012/08/08/%5B%3F%5D-ge-shuai-qi-de-bresenhams-suan-fa-shi-xian/"/>
     <updated>2012-08-08T15:26:00+08:00</updated>
     <id>http://xuanhan863.github.com/blog/2012/08/08/[?]-ge-shuai-qi-de-bresenhams-suan-fa-shi-xian</id>
