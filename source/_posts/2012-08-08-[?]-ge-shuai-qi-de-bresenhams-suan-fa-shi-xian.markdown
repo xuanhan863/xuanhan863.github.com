@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "一个帅气的Bresenham's 算法实现"
+title: "一个高效的Bresenham's 算法实现"
 date: 2012-08-08 15:26
 comments: true
 categories: 
