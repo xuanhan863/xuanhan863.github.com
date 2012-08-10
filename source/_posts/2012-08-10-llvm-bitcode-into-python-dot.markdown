@@ -173,8 +173,8 @@ And then 运行:
 
 在以上例子中,它使用import bitey的方式来识别和加载模块.如果你想跳过这一步,让一切自动,可以创建一个bitey.pth文件,它包含了下面的声明:
 
-    ＃bitey.pth
-    进口bitey
+    #bitey.pth
+    import bitey
 
 现在,只需要把这个文件复制到Python的site-packages目录下.
 
