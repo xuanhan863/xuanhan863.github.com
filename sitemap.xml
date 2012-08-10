@@ -2,7 +2,7 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://xuanhan863.github.com/blog/2012/07/25/first-blog-with-octopress/</loc>
-        <lastmod>2012-08-08T14:52:25+08:00</lastmod>
+        <lastmod>2012-08-10T16:20:11+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/blog/2012/07/27/git-tricks-stash/</loc>
@@ -32,7 +32,7 @@
     </url>
     <url>
         <loc>http://xuanhan863.github.com/blog/archives/</loc>
-        <lastmod>2012-08-10T15:54:01+08:00</lastmod>
+        <lastmod>2012-08-10T16:20:11+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/404.html</loc>
@@ -40,14 +40,14 @@
     </url>
     <url>
         <loc>http://xuanhan863.github.com/about/</loc>
-        <lastmod>2012-08-09T21:49:21+08:00</lastmod>
+        <lastmod>2012-08-10T16:22:58+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/</loc>
-        <lastmod>2012-08-10T15:54:01+08:00</lastmod>
+        <lastmod>2012-08-10T16:20:11+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/archives/</loc>
-        <lastmod>2012-08-10T15:54:01+08:00</lastmod>
+        <lastmod>2012-08-10T16:20:11+08:00</lastmod>
     </url>
 </urlset>

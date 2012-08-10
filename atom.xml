@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-08-10T15:54:14+08:00</updated>
+  <updated>2012-08-10T16:23:06+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -631,7 +631,11 @@ $ git stash pop
     <link href="http://xuanhan863.github.com/blog/2012/07/25/first-blog-with-octopress/"/>
     <updated>2012-07-25T16:24:00+08:00</updated>
     <id>http://xuanhan863.github.com/blog/2012/07/25/first-blog-with-octopress</id>
-    <content type="html"><![CDATA[<h1>尝试使用octopress 基于github pages 的方式写blog</h1>
+    <content type="html"><![CDATA[<p>CU 和 GAE上的Blog 停止维护. 注册了新域名 <a href="http://huoxu.me">huoxu.me</a> 感谢关注.</p>
+
+<p>尝试使用octopress 基于github pages 的方式写blog.</p>
+
+<p>======================</p>
 
 <blockquote><p>其中还是有很多个坑的. 但是上手很快.</p>
 
