@@ -34,9 +34,9 @@ LLVM严格说来是一个编译器架构体系. 怎么说呢? 编译器的开发
     
     int srandom()
     {
-        int i;
+        int random;
         srand( (unsigned)time( NULL ) );
-        int random = rand();
+        random = rand();
         return random;
     }
 
