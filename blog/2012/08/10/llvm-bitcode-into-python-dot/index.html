@@ -1,0 +1,327 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>LLVM bitcode into Python.. - huoxu.me</title>
+	<meta name="author" content="Tony.lee">
+
+	
+	<meta name="description" content="传统的Python程序员屌丝,可能会使用ctypes直接调用由C编译出来的函数,所谓的调用c的动态链接库.好处是接口简洁,兼容绝大部分的C类型数据结构..收益也很明显,大多都是为了解决性能上的问题. import ctypes;
+h = ctypes.CDLL('**.so') 再说说LLVM ( &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="huoxu.me" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">huoxu.me</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/about">About Me</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/about">About Me</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:xuanhan863.github.com">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		
+		<a class="github" href="https://github.com/xuanhan863" title="GitHub">GitHub</a>
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+	<form class="search" action="http://google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:xuanhan863.github.com">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h1 class="title">LLVM Bitcode Into Python..</h1>
+	<div class="entry-content"><p>传统的Python程序员屌丝,可能会使用ctypes直接调用由C编译出来的函数,所谓的调用c的动态链接库.好处是接口简洁,兼容绝大部分的C类型数据结构..收益也很明显,大多都是为了解决性能上的问题.</p>
+
+<pre><code>import ctypes;
+h = ctypes.CDLL('**.so')
+</code></pre>
+
+<p>再说说LLVM (Low Level Virtual Machine) 一个低级别的虚拟机.. 但和JVM等等传统意义上的虚拟机不一样的是, LLVM能够在编译期优化、链接优化、甚至在线编译优化.</p>
+
+<p>LLVM严格说来是一个编译器架构体系. 怎么说呢? 编译器的开发者仅需开发一个可以把原始码转换成LLVM的bitcode的格式(frontend),而转换至机器语言的部分则由另一批开发人员开发(backend). 这样做的好处是使得程序语言可以很轻松的跨越各种平台(LLVM在各个平台所使用的bitcode是一样的).</p>
+
+<p>然后, 我想介绍的是这么一个东东: <a href="https://github.com/dabeaz/bitey">Bitey </a></p>
+
+<p>它可以把以上提到的两个概念衔接到一起&#8230; 它可以将LLVM的bitcode直接导入到Python中作为一个扩展模块.</p>
+
+<p>开始前提是, 你开启了configure &#8211;enable-shared=yes编译选项. 和安装了<a href="http://www.llvmpy.org">link text</a>llvm-py python for llvm扩展.</p>
+
+<p><strong>Ok, 首先, 我写了一个很简单C版本的伪随机数生成器.</strong></p>
+
+<pre><code>//srands.c
+#include &lt;stdio.h&gt;                                   
+#include &lt;time.h&gt;
+
+int srandom()
+{
+    int i;
+    srand( (unsigned)time( NULL ) );
+    int random = rand();
+    return random;
+}
+</code></pre>
+
+<p>然后, 我通过clang 把它编译成LLVM bitcode:</p>
+
+<pre><code>bash % clang -emit-llvm -c srands.c
+</code></pre>
+
+<p>这将会生成一个srands.o文件,它包含了LLVM bitcode. 现在,只需把它导入到Python:</p>
+
+<pre><code>&gt;&gt;&gt; import bitey
+&gt;&gt;&gt; import srands
+&gt;&gt;&gt; srands.srandom()
+5788877353
+&gt;&gt;&gt;
+</code></pre>
+
+<p>没错,就是这样.bitey不使用C编译器,连接器,或动态装载器. 你不需要写包装函数,只需要正常的实现一个C程序,然后,编译,导入和完成.</p>
+
+<p>bitey兼容大多数C数据类型,包括整数,浮点数,void,指针,数组和结构体.事实上因为它复用了ctypes的基础接口.</p>
+
+<p>下面是一个稍微复杂一点的结构体数据类型的交互:</p>
+
+<pre><code>/* point.c */
+#include &lt;math.h&gt;
+
+struct Point {
+    double x;
+    double y;
+};
+
+double distance(struct Point *p1, struct Point *p2) {
+    return sqrt((p1-&gt;x - p2-&gt;x)*(p1-&gt;x - p2-&gt;x) +
+                (p1-&gt;y - p2-&gt;y)*(p1-&gt;y - p2-&gt;y));
+}
+</code></pre>
+
+<p>And then 运行:</p>
+
+<pre><code>% clang -emit-llvm -c point.c
+% python
+&gt;&gt;&gt; import bitey
+&gt;&gt;&gt; import point
+&gt;&gt;&gt; p1 = point.Point(3,4)
+&gt;&gt;&gt; p2 = point.Point(6,8)
+&gt;&gt;&gt; point.distance(p1,p2)
+5.0
+&gt;&gt;&gt;
+</code></pre>
+
+<p>需要说明的是,LLVM的bitcode不编码结构域的名称.因此,Bitey需将它们分配给这样的索引元素变量:</p>
+
+<pre><code>&gt;&gt;&gt; p1.e0         # (Returns the .x component)
+3
+&gt;&gt;&gt; p1.e1         # (Returns the .y component)
+4
+</code></pre>
+
+<p>也可以使用LLVM &#8220;高级主题&#8221;中所说的预加载模块, 让你瞬间变身高富帅..</p>
+
+<p>如果需要把两个LLVM的目标文件一起合并成一个单一的导入模块,使用llvm-ld命令:</p>
+
+<pre><code>% llvm-ld point.o srands.o -b combined.o
+% python
+&gt;&gt;&gt; import bitey
+&gt;&gt;&gt; import combined
+&gt;&gt;&gt; combined.srandom()
+5345345646
+&gt;&gt;&gt; p1 = combined.Point(3,4)
+&gt;&gt;&gt; p2 = combined.Point(6,8)
+&gt;&gt;&gt; combined.distance(p1,p2)
+5.0
+&gt;&gt;&gt;
+</code></pre>
+
+<p>很多时候,我们写的C代码需要链接外部库.于是在导入之前可以采取特殊的方法来加载库.
+比如:</p>
+
+<pre><code># OS-X
+% gcc -bundle -export_dynamic srands.c -o libsrands.so
+
+# Linux
+% gcc -shared srands.c -o libsrands.so
+</code></pre>
+
+<p>现在,假设有一些C代码要访问这个库:</p>
+
+<pre><code>/* sample.c */
+#include &lt;stdio.h&gt;
+extern int srandom();
+
+void print_srandom() {
+    int n = 5;
+    // 随机数生成,打印5次.
+    while (n -- &gt;= 0) {
+        printf("%d\n", srandom());
+    }
+}
+</code></pre>
+
+<p>你很希望它能正常执行, 但不幸的是, 它报错了&#8230;</p>
+
+<pre><code>% clang -emit-llvm -c sample.c
+% python
+&gt;&gt;&gt; import bitey
+&gt;&gt;&gt; import sample
+LLVM ERROR: Program used external function 'srandom' which could not be resolved!
+%
+</code></pre>
+
+<p>不怕不怕&#8230; 问题可以这样解决:</p>
+
+<pre><code> % python
+ &gt;&gt;&gt; import bitey
+ &gt;&gt;&gt; bitey.load_library("./libsrands.so")
+&lt;CDLL './libsrands.so', handle 13203afc60 at 10179d190&gt;
+ &gt;&gt;&gt; import sample
+ &gt;&gt;&gt; sample.print_srandom()
+ 354534534
+ 65645434
+ 5454535
+ 546456546645
+ 45345345
+ &gt;&gt;&gt;
+</code></pre>
+
+<p>需要说明的是,Bitey不使用C编译器,连接器,动态加载程序,或者涉及子进程调用.它是完全独立的,粘合了llvm-py和ctypes的功能.</p>
+
+<p>自动绑定</p>
+
+<p>在以上例子中,它使用import bitey的方式来识别和加载模块.如果你想跳过这一步,让一切自动,可以创建一个bitey.pth文件,它包含了下面的声明:</p>
+
+<pre><code>＃bitey.pth
+进口bitey
+</code></pre>
+
+<p>现在,只需要把这个文件复制到Python的site-packages目录下.</p>
+
+<p>That&#8217;s all..  : )</p>
+
+<p>参考: <a href="https://github.com/dabeaz/bitey"> bitey on github </a></p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-10T14:46:00+08:00" pubdate data-updated="true">Aug 10<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/10/llvm-bitcode-into-python-dot/#disqus_thread">Comments</a></span>
+	
+</div></article>
+
+	<div class="share">
+  <div class="addthis_toolbox addthis_default_style ">
+  
+     
+        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/08/10/llvm-bitcode-into-python-dot/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/08/10/llvm-bitcode-into-python-dot/" >Tweet</a>
+     
+     
+     
+	</div>
+</div>
+
+
+
+<section id="comment">
+    <h1 class="title">Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2012
+
+    Tony.lee
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'huoxu';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/08/10/llvm-bitcode-into-python-dot/';
+        var disqus_url = 'http://xuanhan863.github.com/blog/2012/08/10/llvm-bitcode-into-python-dot/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+</body>
+</html>
