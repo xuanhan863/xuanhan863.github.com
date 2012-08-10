@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-08-10T16:23:06+08:00</updated>
+  <updated>2012-08-10T16:24:39+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -178,8 +178,8 @@ LLVM ERROR: Program used external function 'srandom' which could not be resolved
 
 <p>在以上例子中,它使用import bitey的方式来识别和加载模块.如果你想跳过这一步,让一切自动,可以创建一个bitey.pth文件,它包含了下面的声明:</p>
 
-<pre><code>＃bitey.pth
-进口bitey
+<pre><code>#bitey.pth
+import bitey
 </code></pre>
 
 <p>现在,只需要把这个文件复制到Python的site-packages目录下.</p>
