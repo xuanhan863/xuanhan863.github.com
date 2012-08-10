@@ -104,9 +104,9 @@ h = ctypes.CDLL('**.so')
 
 int srandom()
 {
-    int i;
+    int random;
     srand( (unsigned)time( NULL ) );
-    int random = rand();
+    random = rand();
     return random;
 }
 </code></pre>
