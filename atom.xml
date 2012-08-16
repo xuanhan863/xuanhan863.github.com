@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-08-16T20:42:03+08:00</updated>
+  <updated>2012-08-16T20:47:04+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -20,7 +20,7 @@
     <id>http://xuanhan863.github.com/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi</id>
     <content type="html"><![CDATA[<p><strong>关于加密:</strong></p>
 
-<p>你不应该为你的信息在储存和传送过程中的安全而担心. 国内局域网环境恶劣,众所周知.何况还有GFW..</p>
+<p>理论上你不应该为你的信息在储存和传送过程中的安全而担心. 然国内局域网环境恶劣,众所周知.何况还有伟大的GFW..</p>
 
 <p><em>现代密码学的发展使得普通人也可以使用加密技术</em>  比如<a href="http://www.gnupg.org/">GnuPG</a> 就可以帮你在数据传输过程中签名和加密,而且是跨平台的.</p>
 
