@@ -7,8 +7,7 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="传统的Python程序员屌丝,可能会使用ctypes直接调用由C编译出来的函数,所谓的调用c的动态链接库.好处是接口简洁,兼容绝大部分的C类型数据结构..收益也很明显,大多都是为了解决性能上的问题. import ctypes;
-h = ctypes.CDLL('**.so') 再说说LLVM &hellip;">
+	<meta name="description" content="关于加密: 你不应该为你的信息在储存和传送过程中的安全而担心. 国内局域网环境恶劣,众所周知.何况还有GFW.. 现代密码学的发展使得普通人也可以使用加密技术 比如GnuPG 就可以帮你在数据传输过程中签名和加密,而且是跨平台的. GnuPG 采用 RSA 体系,这是一种非对称的加密方式.过程是 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -75,6 +74,70 @@ h = ctypes.CDLL('**.so') 再说说LLVM &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi/">使用Gnupg 对日志加密</a></h1>
+	<div class="entry-content">
+		<p><strong>关于加密:</strong></p>
+
+<p>你不应该为你的信息在储存和传送过程中的安全而担心. 国内局域网环境恶劣,众所周知.何况还有GFW..</p>
+
+<p><em>现代密码学的发展使得普通人也可以使用加密技术</em>  比如<a href="http://www.gnupg.org/">GnuPG</a> 就可以帮你在数据传输过程中签名和加密,而且是跨平台的.</p>
+
+<p><a href="http://www.gnupg.org/">GnuPG</a> 采用 RSA 体系,这是一种非对称的加密方式.过程是:先生成一对密钥,私钥自己保存,而公钥可以公开到任意场景.数据发送方使用公钥加密的内容,只有你可以用私钥解开;你自己用私钥加密的内容,只有用你的公钥可以解开.so,你只需要公开你的公钥,对方就可以用你的公钥给你发送数据,这数据只有你可以解开;如果双方交换了各自的公钥,就可以实现双方相互之间的加密通讯了.</p>
+
+<p><strong>使用:</strong></p>
+
+<p>背景: 某项目的log数据, 机密且敏感.</p>
+
+<p>于是设计使用gnupg 为之传输加密.</p>
+
+<p>使用<a href="http://code.google.com/p/python-gnupg/" >python-gnupg</a> .</p>
+
+<p>使用很简单:</p>
+
+<pre><code>import gnupg
+def encrypt_line(line):
+    gpg = gnupg.GPG(gnupghome=GPG_HOME)
+    encrypted_data = gpg.encrypt(line, '***@')
+    encrypted_string = str(encrypted_data)
+    print 'ok: ', encrypted_data.ok
+    return encrypted_string
+</code></pre>
+
+<p>具体做法是, 使用具体机器名和邮箱作为sign, 生成一对公私钥. 私钥单独一台服务器保存..</p>
+
+<p>python logging在代码里收集支付信息, 通过使用公钥加密, 丢给<a href="http://en.wikipedia.org/wiki/Syslog">syslog</a>, 转发至具体的日志server.</p>
+
+<p>虽然流程繁琐, 但目前想来, 还算通用.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-16T18:22:00+08:00" pubdate data-updated="true">Aug 16<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
 
 
     <article class="post">
@@ -809,55 +872,10 @@ $ git stash pop
 	
 </div></article>
 
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/07/25/first-blog-with-octopress/">First Blog With Octopress</a></h1>
-	<div class="entry-content">
-		<p>CU 和 GAE上的Blog 停止维护. 注册了新域名 <a href="http://huoxu.me">huoxu.me</a> 感谢关注.</p>
-
-<p>尝试使用octopress 基于github pages 的方式写blog.</p>
-
-<p>======================</p>
-
-<blockquote><p>其中还是有很多个坑的. 但是上手很快.</p>
-
-<blockquote><p>另 发现一个Octopress Markdown 语法高亮插件, 聊胜于无.</p></blockquote>
-
-<h2><a href="https://github.com/tangledhelix/vim-octopress">vim-octopress</a></h2>
-
-<p>参考
-[1]:    <a href="http://en.wikipedia.org/wiki/Markdown">Markdown</a>
-[2]:    <a href="http://octopress.org/docs/blogging/">octopress</a></p></blockquote>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-25T16:24:00+08:00" pubdate data-updated="true">Jul 25<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/07/25/first-blog-with-octopress//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
 <nav id="pagenavi">
     
+    
+        <a href="/blog/page/2/" class="next">Next</a>
     
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
