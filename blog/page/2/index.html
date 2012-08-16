@@ -7,7 +7,10 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="CU 和 GAE上的Blog 停止维护. 注册了新域名 huoxu.me 感谢关注. 尝试使用octopress 基于github pages 的方式写blog. ====================== 其中还是有很多个坑的. 但是上手很快. 另 发现一个Octopress &hellip;">
+	<meta name="description" content="Git tricks: stash Git’s stash functionality is something
+that you won’t need very often (in my
+experience, ever) if you’re just
+hacking away at &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +77,97 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/07/27/git-tricks-stash/">Git Tricks: Stash</a></h1>
+	<div class="entry-content">
+		<blockquote><p>Git tricks: stash</p>
+
+<p>Git’s stash functionality is something
+that you won’t need very often (in my
+experience, ever) if you’re just
+hacking away at something in private.
+However, as soon as you introduce
+other factors
+- a boss, say - you’ll find you need to tweak your work-flow to make
+yourself more interruptible.</p>
+
+<p>Sometimes, something needs fixing
+ASAP, and you have 260 build-breaking
+lines an hour away from being
+commit-worthy - you want to store that
+code safely somewhere while you work
+on the emergency. Without git stash,
+you have two possibilities.</p></blockquote>
+
+<ol>
+<li><p>Create a temporary branch, commit
+the broken code, and later abuse git
+reset to undo the commit, Pure git,
+very ugly, and it’s easy to bork
+things with the git reset call.</p></li>
+<li><p>Clone a new copy of the repository.
+Much simpler, but not feasible for
+larger repositories, and incredibly
+hacky.</p></li>
+</ol>
+
+
+<p>Git stash introduces the idea of a temporary commit, orphaned in the sense that it does not belong to any branch, but can be restored later, on top of any other commit. The simplest usage:</p>
+
+<pre><code>$ git stash
+$ fix emergency
+$ git commit -a -m "Emergency fix"
+$ git stash pop
+</code></pre>
+
+<p>Of course, this being git, every feature has to be a little more powerful than that. The commit stored by stash is just like any other commit - it’s a patch which can be applied anywhere. Say you have a lot of branches flying around, and you accidentally start to make a change to the wrong one:</p>
+
+<pre><code>$ git checkout widget-a
+$ # add widget B
+$ git stash -u
+$ git checkout widget-b
+$ git stash pop
+</code></pre>
+
+<p>The -u (equivalent to &#8211;include-untracked) put all untracked files in the stash as well, meaning that when you check out widget-b, you won’t have to re-compile your changes.</p>
+
+<p>Or say you want to pull without committing, but some of your changes conflict:</p>
+
+<pre><code>$ git stash &amp;&amp; git pull &amp;&amp; git stash pop
+</code></pre>
+
+<p>You can also drop and list stashes, and apply them without removing them from the stash stack.</p>
+
+<p>Article from : [http://bytbox.net/blog/2012/07/git-stash.html][1]</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-07-27T17:33:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/07/27/git-tricks-stash//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
 
 
     <article class="post">
@@ -171,19 +265,6 @@
 	</script>
 
 
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-34051131-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
 
 </body>
 </html>
