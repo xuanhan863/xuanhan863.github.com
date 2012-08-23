@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-08-16T20:47:04+08:00</updated>
+  <updated>2012-08-23T12:24:12+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -12,6 +12,57 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Le.git for humans]]></title>
+    <link href="http://xuanhan863.github.com/blog/2012/08/23/le-dot-git-for-humans/"/>
+    <updated>2012-08-23T12:16:00+08:00</updated>
+    <id>http://xuanhan863.github.com/blog/2012/08/23/le-dot-git-for-humans</id>
+    <content type="html"><![CDATA[<p><strong>Let&#8217; git..
+让git的工作流程变的更可读, 简单.</strong></p>
+
+<pre><code>$ git switch &lt;branch&gt;
+# Switches to branch. Stashes and restores unstaged changes.
+
+$ git sync
+# Syncronizes current branch. Auto-merge/rebase, un/stash.
+
+$ git publish &lt;branch&gt;
+# Publishes branch to remote server.
+
+$ git unpublish &lt;branch&gt;
+# Removes branch from remote server.
+
+$ git harvest &lt;branch&gt;
+# Auto-merge/rebase commits from given branch.
+
+$ git sprout &lt;branch&gt;
+# Sprout a new branch from the current branch.
+
+$ git graft &lt;branch&gt;
+# Merge unpublished branch into current branch, then remove it.
+
+$ git branches
+# Nice &amp; pretty list of branches + publication status.
+</code></pre>
+
+<p><strong>Installing Legit</strong></p>
+
+<p><strong>To install the legit command:</strong></p>
+
+<pre><code>$ pip install legit
+</code></pre>
+
+<p><strong>To enable the git aliases:</strong></p>
+
+<pre><code>$ legit install
+</code></pre>
+
+<p><strong><em>Nice and simple — the way it should be.</em></strong></p>
+
+<p>github : <a href="https://github.com/kennethreitz/legit"> legit </a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[使用Gnupg 对日志加密]]></title>
