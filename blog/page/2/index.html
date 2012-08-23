@@ -7,10 +7,8 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="Git tricks: stash Git’s stash functionality is something
-that you won’t need very often (in my
-experience, ever) if you’re just
-hacking away at &hellip;">
+	<meta name="description" content="r³ 是一个基于python的map reduce 引擎. 后端使用redis, 它的设计理念是:To be simple. 和任意一个MapReduce理论完备的项目[Haoop,Spark,Dpark..etc]一样.
+它也分为: 输入流, mappers 和 reducers, &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -77,6 +75,161 @@ hacking away at &hellip;">
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/">一个很cool的项目: R³</a></h1>
+	<div class="entry-content">
+		<p>r³ 是一个基于python的map reduce 引擎. 后端使用redis, 它的设计理念是:To be simple.</p>
+
+<p>和任意一个MapReduce理论完备的项目[Haoop,Spark,Dpark..etc]一样.
+它也分为: 输入流, mappers 和 reducers, 三个处理步骤.</p>
+
+<p><img src="https://github.com/heynemann/r3" alt="image alt" /></p>
+
+<h3>图显示不了了, 原因不明</h3>
+
+
+<p>实践验证理论, Let&#8217;s do it.</p>
+
+<p>先简单的通过pip安装:</p>
+
+<pre><code>pip install r3
+</code></pre>
+
+<p>安装完之后, 会有三个命令:r3-app, r3-map,  r3-web.</p>
+
+<p>看一个常见的Mapreduce场景计算: 对文档单词量的统计.</p>
+
+<p>得有一个存储数据的地方,我先假设你有一个redis实例, 运行在 127.0.0.1:7778</p>
+
+<p>运行:</p>
+
+<pre><code>r3-app --redis-port=7778 --redis-pass=r3 -c config.py
+</code></pre>
+
+<p>上边运行的config.py, 作为一个接口配置, 它包含了输入和reduce的输出:</p>
+
+<pre><code>INPUT_STREAMS = [
+    'test.count_words_stream.CountWordsStream'
+]
+
+REDUCERS = [
+    'test.count_words_reducer.CountWordsReducer'
+]
+</code></pre>
+
+<p>Ok, 首先接触Input Stream.</p>
+
+<p>一个典型的输入流场景,对文档样本进行计数的话,首先应该打开输入流处理器类的文件,读取文件中的行,然后返回的每一行给r3-app.</p>
+
+<p><strong>input stream</strong></p>
+
+<p>它可能是这样的:</p>
+
+<pre><code>from os.path import abspath, dirname, join
+
+class CountWordsStream:
+    job_type = 'count-words'
+    group_size = 1000
+
+    def process(self, app, arguments):
+        with open(abspath(join(dirname(__file__), 'chekhov.txt'))) as f:
+            contents = f.readlines()
+
+        return [line.lower() for line in contents]
+</code></pre>
+
+<p>指定一个job的类型: job_type = &#8216;count-words&#8217;
+group_size = 1000,指定了一个输入流的大小.. 比如:1000, 那每个mapper分配到的处理大小就是1000行, 每1000行, 当做一次Input Stream做一次map.</p>
+
+<p><strong>Running Mappers</strong></p>
+
+<p>使用一个CountWordsMapper类来运行我们的映射.</p>
+
+<pre><code>r3-map --redis-port=7778 --redis-pass=r3 --mapper-key=mapper-1 --mapper-class="test.count_words_mapper.CountWordsMapper"
+</code></pre>
+
+<p>它继承自r3 worker的Mapper类.</p>
+
+<pre><code>from r3.worker.mapper import Mapper
+
+class CountWordsMapper(Mapper):
+    job_type = 'count-words'
+
+    def map(self, lines):
+        return list(self.split_words(lines))
+
+    def split_words(self, lines):
+        for line in lines:
+            for word in line.split():
+                yield word, 1
+</code></pre>
+
+<p><strong>Reducing</strong></p>
+
+<p>在所有Input Stream都已经被Mapper合并处理后.. 这是一个连续的过程.. 我猜想, 应该和Dpark 类似, 也是lazy的. 需要数据时才会真正计算.</p>
+
+<p>那么, Reduce 应该这样写了:</p>
+
+<pre><code>from collections import defaultdict
+
+class CountWordsReducer:
+    job_type = 'count-words'
+
+    def reduce(self, app, items):
+        word_freq = defaultdict(int)
+        for line in items:
+            for word, frequency in line:
+                word_freq[word] += frequency
+
+        return word_freq
+</code></pre>
+
+<p>必须得指定job_type, 这可是reduce和map的血脉关系所在.. = =</p>
+
+<p><strong>测试</strong></p>
+
+<p>我们已经有一个R3应用程序运行在<a href="http://localhost:8888/count-words">http://localhost:8888</a>.</p>
+
+<p>通过<a href="http://localhost:8888/count-words">http://localhost:8888/count-words</a> 访问我们刚刚的文档统计job.</p>
+
+<p><strong>r³ 基于web的监控台 </strong></p>
+
+<p><img src="https://github.com/heynemann/r3/raw/master/r3-web-4.jpg" alt="image alt" /></p>
+
+<p><strong>状态</strong></p>
+
+<p><img src="https://github.com/heynemann/r3/raw/master/r3-web-3.jpg" alt="image alt" /></p>
+
+<p>项目地址: <code>[https://github.com/heynemann/r3][6]</code></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-07-27T18:28:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
 
 
     <article class="post">
