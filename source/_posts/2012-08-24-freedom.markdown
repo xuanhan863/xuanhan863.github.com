@@ -1,0 +1,50 @@
+---
+layout: post
+title: "JSON + UDP + DHT = Freedom ?"
+date: 2012-08-24 17:42
+comments: true
+categories: 
+---
+
+
+它的工作原理是发送和接收少量的JSON bit,通过UDP协议 使用有效的路由系统 基于<a href="http://en.wikipedia.org/wiki/Kademlia">Kademlia</a>.
+
+**科普时间**
+> Kademlia属于一种结构化的P2P网络,在Kademlia网络中,所有信息均以160比特SHA1散列哈希表条目形式加以存储,这些条目被分散地存储在各个节点上,从而以全网方式构成一张巨大的分布式哈希表
+> 
+
+和日渐成熟的<a href="http://en.wikipedia.org/wiki/Distributed_hash_table">分布式哈希表</a>.
+TeleHash路由, 它就是基于一个通用的,ID或URL相关的SHA哈希散列.
+
+
+<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/9/98/DHT_en.svg/500px-DHT_en.svg.png"></img>
+
+
+比如官网给出的获取种子的实例:
+
+    echo '{"+end":"3b6a6..."}' | nc -u telehash.org 42424
+
+它将回应一个json 串:
+
+    {"_ring":17904, ".see":[ "208.68.163.247:42424", "208.68.160.25:55137"], "_br":52, "_to":"173.19.99.143:63681" }
+
+
+
+感兴趣的可以去瞅瞅 <a href="http://telehash.org/"> telehash </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
