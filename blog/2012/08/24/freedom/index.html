@@ -3,11 +3,11 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>出错啦！ - huoxu.me</title>
+	<title>JSON + UDP + DHT = Freedom ? - huoxu.me</title>
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="出错啦！ 出错啦。。。 看看别的吧 Tweet Recent Posts JSON + UDP + DHT = Freedom ? 珍惜身边的人 Le.git for humans 使用Gnupg 对日志加密 LLVM bitcode into Python.. GitHub Repos &hellip;">
+	<meta name="description" content="它的工作原理是发送和接收少量的JSON bit,通过UDP协议 使用有效的路由系统 基于Kademlia. 科普时间 Kademlia属于一种结构化的P2P网络,在Kademlia网络中,所有信息均以160比特SHA1散列哈希表条目形式加以存储,这些条目被分散地存储在各个节点上, &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,36 +74,109 @@
 		
 	
 	<div id="content" class="inner"><div>
-<article role="article">
+<article class="hentry" role="article">
   
-  <header>
-    <h1 class="entry-title">出错啦！</h1>
+	<h1 class="title">JSON + UDP + DHT = Freedom ?</h1>
+	<div class="entry-content"><p>它的工作原理是发送和接收少量的JSON bit,通过UDP协议 使用有效的路由系统 基于<a href="http://en.wikipedia.org/wiki/Kademlia">Kademlia</a>.</p>
+
+<p><strong>科普时间</strong></p>
+
+<blockquote><p>Kademlia属于一种结构化的P2P网络,在Kademlia网络中,所有信息均以160比特SHA1散列哈希表条目形式加以存储,这些条目被分散地存储在各个节点上,从而以全网方式构成一张巨大的分布式哈希表</p></blockquote>
+
+<p>和日渐成熟的<a href="http://en.wikipedia.org/wiki/Distributed_hash_table">分布式哈希表</a>.
+TeleHash路由, 它就是基于一个通用的,ID或URL相关的SHA哈希散列.</p>
+
+<p><img src="http://upload.wikimedia.org/wikipedia/commons/thumb/9/98/DHT_en.svg/500px-DHT_en.svg.png"></img></p>
+
+<p>比如官网给出的获取种子的实例:</p>
+
+<pre><code>echo '{"+end":"3b6a6..."}' | nc -u telehash.org 42424
+</code></pre>
+
+<p>它将回应一个json 串:</p>
+
+<pre><code>{"_ring":17904, ".see":[ "208.68.163.247:42424", "208.68.160.25:55137"], "_br":52, "_to":"173.19.99.143:63681" }
+</code></pre>
+
+<p>感兴趣的可以去瞅瞅 <a href="http://telehash.org/"> telehash </a></p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-24T17:42:00+08:00" pubdate data-updated="true">Aug 24<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/24/freedom/#disqus_thread">Comments</a></span>
+	
+</div>
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tony.lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-24T17:42:00+08:00" pubdate data-updated="true">Aug 24<span>th</span>, 2012</time>
+      
+
+
+      
+
+
+    </p>
     
-  </header>
-  
-  <h1>出错啦。。。</h1>
-
-<p>看看别的吧</p>
-
-  
-    <footer>
-      
-      
-        <div class="share">
+      <div class="share">
   <div class="addthis_toolbox addthis_default_style ">
   
      
-        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/404.html" data-via="" data-counturl="http://xuanhan863.github.com/404.html" >Tweet</a>
+        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/08/24/freedom/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/08/24/freedom/" >Tweet</a>
      
      
      
 	</div>
 </div>
 
+    
+    <p class="meta">
       
-    </footer>
-  
+        <a class="basic-alignment left" href="/blog/2012/08/23/zhen-xi/" title="Previous Post: 珍惜身边的人">&laquo; 珍惜身边的人</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -209,7 +282,10 @@ Images are wrapped in divs classed "flickr_badge_image" with ids "flickr_badge_i
       var disqus_shortname = 'huoxu';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/08/24/freedom/';
+        var disqus_url = 'http://xuanhan863.github.com/blog/2012/08/24/freedom/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

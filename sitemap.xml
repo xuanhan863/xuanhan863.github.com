@@ -2,64 +2,68 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://xuanhan863.github.com/blog/2012/07/25/first-blog-with-octopress/</loc>
-        <lastmod>2012-08-10T16:20:11+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/blog/2012/07/27/git-tricks-stash/</loc>
-        <lastmod>2012-08-08T14:52:25+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>
             http://xuanhan863.github.com/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/
         </loc>
-        <lastmod>2012-08-08T14:52:25+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>
             http://xuanhan863.github.com/blog/2012/08/08/%5B%3F%5D-ge-shuai-qi-de-bresenhams-suan-fa-shi-xian/
         </loc>
-        <lastmod>2012-08-09T20:55:42+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>
             http://xuanhan863.github.com/blog/2012/08/08/zen-yao-chuang-jian-ke-kao-de-wang-luo-fu-wu/
         </loc>
-        <lastmod>2012-08-09T21:09:42+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/blog/2012/08/10/llvm-bitcode-into-python-dot/</loc>
-        <lastmod>2012-08-10T16:48:40+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi/</loc>
-        <lastmod>2012-08-16T20:46:56+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/blog/2012/08/23/le-dot-git-for-humans/</loc>
-        <lastmod>2012-08-23T12:24:06+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/blog/2012/08/23/zhen-xi/</loc>
-        <lastmod>2012-08-23T18:17:26+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://xuanhan863.github.com/blog/2012/08/24/freedom/</loc>
+        <lastmod>2012-08-24T18:03:07+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/blog/archives/</loc>
-        <lastmod>2012-08-23T18:17:26+08:00</lastmod>
+        <lastmod>2012-08-24T18:03:07+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/404.html</loc>
-        <lastmod>2012-08-08T14:52:25+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/about/</loc>
-        <lastmod>2012-08-10T16:51:49+08:00</lastmod>
+        <lastmod>2012-08-24T13:45:16+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/</loc>
-        <lastmod>2012-08-23T18:17:26+08:00</lastmod>
+        <lastmod>2012-08-24T18:03:07+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/archives/</loc>
-        <lastmod>2012-08-23T18:17:26+08:00</lastmod>
+        <lastmod>2012-08-24T18:03:07+08:00</lastmod>
     </url>
 </urlset>
