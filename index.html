@@ -7,7 +7,9 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="它的工作原理是发送和接收少量的JSON bit,通过UDP协议 使用有效的路由系统 基于Kademlia. 科普时间 Kademlia属于一种结构化的P2P网络,在Kademlia网络中,所有信息均以160比特SHA1散列哈希表条目形式加以存储,这些条目被分散地存储在各个节点上, &hellip;">
+	<meta name="description" content="今天是农历七月十五(中元节), 今年2月26号, 晚9:27分, 奶奶因病挥别.
+到今天为止已是187天. 奶奶, 您在天堂那边还好么? 天堂那边真有那么好? 好到逝去的人, 一个个都不愿意回来 从小都在奶奶身边, 那种被矫宠的依赖伴随着我长大..
+奶奶生前最疼我了, 什么都喜欢留给我, &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -77,6 +79,503 @@
 
 
     <article class="post">
+	<h1 class="title"><a href="/blog/2012/08/31/zhi-zai-tian-tang-de-nai-nai/">致在天堂的奶奶</a></h1>
+	<div class="entry-content">
+		<p><strong>今天是农历七月十五(中元节), 今年2月26号, 晚9:27分, 奶奶因病挥别.
+到今天为止已是187天. </strong></p>
+
+<p><strong>奶奶, 您在天堂那边还好么? 天堂那边真有那么好? 好到逝去的人, 一个个都不愿意回来</strong></p>
+
+<p>从小都在奶奶身边, 那种被矫宠的依赖伴随着我长大..
+奶奶生前最疼我了, 什么都喜欢留给我, 那种毫不掩饰的偏心, 每个人都看在眼里.</p>
+
+<p>奶奶的离去, 可能是我生命中的一块阴影. 每次想到回家后, 将不再能享受到她给我亲手做的可口饭菜, 和近乎无微不至的照顾关爱, 我就眼泪直流.</p>
+
+<p><strong>记忆是一种负担, 它让我陷入无止境的回忆之中, 痛不欲生, 不能自拔.</strong></p>
+
+<p><strong>有些人永远不会忘, 因为舍不得.</strong></p>
+
+<p><strong>我将永远铭记着您从前对我的关爱, 若有来生, 还将重逢.</strong></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-31T18:03:00+08:00" pubdate data-updated="true">Aug 31<span>st</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/31/zhi-zai-tian-tang-de-nai-nai//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/08/31/tracing-nested-function-call-in-python/">在Python 中跟踪嵌套函数调用</a></h1>
+	<div class="entry-content">
+		<p>有时,当执行复杂的函数调用时,特别是那些涉及到递归算法的函数,很希望能跟踪到它的函数调用堆栈,能跟踪到在执行过程中实际使用了哪些参数和返回值, 但又不想使用诸如pdb之类的debug工具.</p>
+
+<p>下面是一个简单的Python decorator（适用于2.7和3.2 +）</p>
+
+<pre><code>import sys
+from functools import wraps
+
+class TraceCalls(object):
+    """ 
+        使用这个decorator 可以追踪到函数递归调用的深度.
+    """
+    def __init__(self, stream=sys.stdout, indent_step=2, show_ret=False):
+        self.stream = stream
+        self.indent_step = indent_step
+        self.show_ret = show_ret
+
+        # This is a class attribute since we want to share the indentation
+        # level between different traced functions, in case they call
+        # each other.
+        TraceCalls.cur_indent = 0
+
+    def __call__(self, fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            indent = ' ' * TraceCalls.cur_indent
+            argstr = ', '.join(
+                [repr(a) for a in args] +
+                ["%s=%s" % (a, repr(b)) for a, b in kwargs.items()])
+            self.stream.write('%s%s(%s)\n' % (indent, fn.__name__, argstr))
+
+            TraceCalls.cur_indent += self.indent_step
+            ret = fn(*args, **kwargs)
+            TraceCalls.cur_indent -= self.indent_step
+
+            if self.show_ret:
+                self.stream.write('%s--&gt; %s\n' % (indent, ret))
+            return ret
+        return wrapper
+</code></pre>
+
+<p>我们可以这样用它:</p>
+
+<pre><code>@TraceCalls()
+def iseven(n):
+    return True if n == 0 else isodd(n - 1)
+
+@TraceCalls()
+def isodd(n):
+    return False if n == 0 else iseven(n - 1)
+
+print(iseven(7))
+</code></pre>
+
+<p>输出它的函数堆栈调用层级:</p>
+
+<pre><code>iseven(7)
+  isodd(6)
+    iseven(5)
+      isodd(4)
+        iseven(3)
+          isodd(2)
+            iseven(1)
+              isodd(0)
+False
+</code></pre>
+
+<p>这个decorator tracer 还有几个有用的参数:</p>
+
+<pre><code>stream: 打印跟踪输出,默认情况下输出到到sys.stdout.
+indent_step: 定义每个嵌套调用,有多少个空间字符的缩进.
+show_ret: 设置为true时,显示每个调用的返回值.
+
+
+
+@TraceCalls(indent_step=4, show_ret=True)
+def flatten(lst):
+    if isinstance(lst, list):
+        return sum((flatten(item) for item in lst), [])
+    else:
+        return [lst]
+
+list(flatten([1, 2, [3, [4, 5], 6, [7, [9], 12]], 4, [6, 9]]))
+</code></pre>
+
+<p>调整后的输出:</p>
+
+<pre><code>flatten([1, 2, [3, [4, 5], 6, [7, [9], 12]], 4, [6, 9]])
+    flatten(1)
+    --&gt; [1]
+    flatten(2)
+    --&gt; [2]
+    flatten([3, [4, 5], 6, [7, [9], 12]])
+        flatten(3)
+        --&gt; [3]
+        flatten([4, 5])
+            flatten(4)
+            --&gt; [4]
+            flatten(5)
+            --&gt; [5]
+        --&gt; [4, 5]
+        flatten(6)
+        --&gt; [6]
+        flatten([7, [9], 12])
+            flatten(7)
+            --&gt; [7]
+            flatten([9])
+                flatten(9)
+                --&gt; [9]
+            --&gt; [9]
+            flatten(12)
+            --&gt; [12]
+        --&gt; [7, 9, 12]
+    --&gt; [3, 4, 5, 6, 7, 9, 12]
+    flatten(4)
+    --&gt; [4]
+    flatten([6, 9])
+        flatten(6)
+        --&gt; [6]
+        flatten(9)
+        --&gt; [9]
+    --&gt; [6, 9]
+--&gt; [1, 2, 3, 4, 5, 6, 7, 9, 12, 4, 6, 9]
+</code></pre>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-31T15:21:00+08:00" pubdate data-updated="true">Aug 31<span>st</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/31/tracing-nested-function-call-in-python//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/08/31/a-git-launcher/">A Git Launcher</a></h1>
+	<div class="entry-content">
+		<p>a git launcher : )</p>
+
+<p>当你输错后, 有一个ASCII码的terminal动画效果. 之后, 它会把你的意思正确执行.</p>
+
+<p><img src="http://r-wos.org/media/gti-animation"></img></p>
+
+<p>只有一个C 文件的实现, 只针对git命令.</p>
+
+<pre><code>$ git clone https://github.com/rwos/gti.git
+$ make
+$ make install # as root, probably
+</code></pre>
+
+<p><strong>参考: <a href="http://r-wos.org/hacks/gti">http://r-wos.org/hacks/gti</a></strong></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-31T12:26:00+08:00" pubdate data-updated="true">Aug 31<span>st</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/31/a-git-launcher//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/08/30/a-generic-singleton/">一个通用的C++ 单例模型</a></h1>
+	<div class="entry-content">
+		<p>昨天,我发现一个问题,这是一年前未能解决的方案.这个问题很简单:创建一个通用的单例对象模型.对单例模型的定义是: &#8220;确保一个类只有一个实例,并提供一个全局访问点&#8221;.</p>
+
+<p>常见的版本是使用模板模式（CRTP）.先介绍CRTP,这个概念很简单,只是继承了一个模板基类,它允许创建静态多态性或者实例计数器&#8230; 可以参考维基百科对此的定义 <a href="http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously recurring template pattern</a></p>
+
+<p>使用CRTP的方式, 每次程序结束时, 我都需要显示调用一次 destroySingleton.
+所以,我必须设计一个通用的解决方案,围绕整个对象生命周期, 从对象构造到它调用结束被析构.</p>
+
+<p>最初,我使用两个阶级,两个构造函数,我虽然打的事实,不使用模板函数的实例,可以容忍不正确（没有类型检查，没有名字结合&#8230;这必须是有效的语法）。下面是一个例子：</p>
+
+<pre><code>#include &lt;string&gt;
+
+template &lt;class T&gt;
+class Singleton
+{
+public:
+  static T* get_instance(int v)
+  {
+    if (!instance_)
+      instance_ = new T(v);
+
+    return instance_;
+  }
+
+  static T* get_instance(std::string s)
+  {
+    if (!instance_)
+      instance_ = new T(s);
+
+    return instance_;
+  } // Sounds familiar...
+
+  static void destroy_instance()
+  {
+    delete instance_;
+    instance_ = nullptr;
+  }
+
+private:
+  static T* instance_;
+};
+
+template &lt;class T&gt; T* Singleton&lt;T&gt;::instance_ = nullptr;
+
+// The classes that will be singletons:
+
+class Single: public Singleton&lt;Single&gt;
+{
+public:
+  Single(std::string s): s_(s) {}
+
+private:
+  std::string s_;
+};
+
+class Map: public Singleton&lt;Map&gt;
+{
+public:
+  Map(int scale): scale_(scale) {}
+
+private:
+  int scale_;
+};
+
+// How to create and destroy them:
+
+int main()
+{
+  Single* s = Single::get_instance("Forever Alone");
+  Map* m = Map::get_instance(42);
+
+  // Use these singletons.
+
+  Map::destroy_instance();
+  Single::destroy_instance();
+}
+</code></pre>
+
+<p>这个版本实现了通用单例的一半,它完全非侵入式的转化为单例类.</p>
+
+<p>事实上,必须建立两个GET_INSTANCE,因为它有两个不同的构造函数.由于可能对象构造函数的参数组合的数量是无限的,所以这个解决方案并不好.</p>
+
+<p>昨天,研究了一下<a href="http://enki-tech.blogspot.fr/2012/08/c11-vector-improved-how-it-works.html"> C++ 11</a>机制, 发现它允许创建emplace_back. 其实,我们只需要创建一个GET_INSTANCE,作为参数传给构造函数.不重复,完全通用的,这就是我想要的.
+下面是Singleton类的最终版本:</p>
+
+<pre><code>#include &lt;iostream&gt;
+
+template &lt;class T&gt;
+class Singleton
+{
+public:
+  template &lt;typename... Args&gt;
+  static
+  T* get_instance(Args... args)
+  {
+    if (!instance_)
+      {
+        instance_ = new T(std::forward&lt;Args&gt;(args)...);
+      }
+
+    return instance_;
+  }
+
+  static
+  void destroy_instance()
+  {
+    delete instance_;
+    instance_ = nullptr;
+  }
+
+private:
+  static T* instance_;
+};
+
+template &lt;class T&gt; T*  Singleton&lt;T&gt;::instance_ = nullptr;
+
+class Map: public Singleton&lt;Map&gt;
+{
+  friend class Singleton&lt;Map&gt;;
+private:
+  Map(int size_x, int size_y): size_x_{size_x}, size_y_{size_y} {}
+
+public:
+  int size_x_;
+  int size_y_;
+};
+
+int main()
+{
+  Map* m = Map::get_instance(4, 5);
+
+  std::cout &lt;&lt; m-&gt;size_y_ &lt;&lt; std::endl; // Outputs 5.
+
+  Map::destroy_instance();
+}
+</code></pre>
+
+<p>简单翻译, 原文出处: <a href="http://enki-tech.blogspot.fr/2012/08/c11-generic-singleton.html">C++11: A generic Singleton</a>
+自备翻墙.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-30T17:29:00+08:00" pubdate data-updated="true">Aug 30<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/30/a-generic-singleton//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/08/28/simple-password-encrypted-files-w-slash-gnupg/">使用GnuPG 对文件进行对称加密</a></h1>
+	<div class="entry-content">
+		<p>在互联网上发送或共享一些文件文档,我可能希望它是安全的,加过密的,即使被截获,我也不希望出现类似于艳照门的事件,尽管在码农的生活中可能无艳可照&#8230;
+在 Linux 或 OSX, 我可以使用一个 <a href="http://huoxu.me/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi/"> GnuPG </a> 的工具对我想要对外共享的文件进行密码保护.</p>
+
+<pre><code>安装 GnuPG
+使用Gentoo. 
+
+sudo emerge gpg
+
+
+在Mac OSX 下可以使用 Homebrew:
+
+brew install gpg
+</code></pre>
+
+<p>加密一个敏感文件</p>
+
+<pre><code>gpg -c sensitive.txt
+</code></pre>
+
+<p>因为是对称加密, 它会提示:</p>
+
+<pre><code>Enter passphrase:
+Repeat passphrase: 
+</code></pre>
+
+<p>如果成功, 会生成一个sensitive.txt.gpg文件, 当然了, 它的内容是人类不可读的.</p>
+
+<p>你可以随意分发传送这个文件..</p>
+
+<p>接收方只需要对密文件:</p>
+
+<pre><code>gpg sensitive.txt.gpg
+</code></pre>
+
+<p>当然了, 假设对方是知道你的对称密码的.</p>
+
+<pre><code>gpg: CAST5 encrypted data
+Enter passphrase: 
+</code></pre>
+
+<p>输入密码短语后, 它会还原成原文件 sensitive.txt.</p>
+
+<p>Dropbox作为云端文件存储利器, 方便的同时, 可能也会带来安全隐患, 很有必要对你存储的文件做一层加密.</p>
+
+<p>使用基于gpg的Dropbox 加密项目, 基本可以做到无忧.</p>
+
+<p><a href="https://github.com/woodwardjd/lockbox/">https://github.com/woodwardjd/lockbox/</a></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-28T13:45:00+08:00" pubdate data-updated="true">Aug 28<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/28/simple-password-encrypted-files-w-slash-gnupg//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
+
+
+    <article class="post">
 	<h1 class="title"><a href="/blog/2012/08/24/freedom/">JSON + UDP + DHT = Freedom ?</a></h1>
 	<div class="entry-content">
 		<p>它的工作原理是发送和接收少量的JSON bit,通过UDP协议 使用有效的路由系统 基于<a href="http://en.wikipedia.org/wiki/Kademlia">Kademlia</a>.</p>
@@ -126,511 +625,6 @@ TeleHash路由, 它就是基于一个通用的,ID或URL相关的SHA哈希散列.
 </div>
 	
 		<span class="comments"><a href="/blog/2012/08/24/freedom//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/23/zhen-xi/">珍惜身边的人</a></h1>
-	<div class="entry-content">
-		<p>有一部电影, 有一个场景: 一个孩子在卫生间洗澡，水迷了眼,睁不开; 他扶着墙壁，大叫: &#8221; 妈妈,毛巾,毛巾.. &#8221;</p>
-
-<p>许久,男孩儿呆在那里,继而瘫坐在一旁,他无声地哭了。</p>
-
-<p>他的母亲不久前刚刚去世; 以前,他都是这样习惯性地呼唤妈妈的.</p>
-
-<p>就像我每次回家后, 总会想起奶奶从前在的时候, 总会提前热好水, 做好饭菜, 备好毛毯&#8230; 生怕我长途坐车, 累着, 饿着&#8230;
-每每想到此情此景, 而物是人非, 我眼泪就止不住止的流&#8230;  那是种被爱的习惯&#8230;  习惯了, 也就放不开了&#8230;</p>
-
-<p>我们需要一个人,在自己心神疲惫的时候随叫随到,任凭自己发泄情绪而不会生气.</p>
-
-<p>这样的一个人,不会很多. 一辈子只能遇上一位,或者终老也不会遇上.</p>
-
-<p>七夕了, 珍惜身边的人, 时间很长, 时间也很短&#8230;</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-23T17:59:00+08:00" pubdate data-updated="true">Aug 23<span>rd</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/23/zhen-xi//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/23/le-dot-git-for-humans/">Le.git for Humans</a></h1>
-	<div class="entry-content">
-		<p><strong>Let&#8217; git..
-让git的工作流程变的更可读, 简单.</strong></p>
-
-<pre><code>$ git switch &lt;branch&gt;
-# Switches to branch. Stashes and restores unstaged changes.
-
-$ git sync
-# Syncronizes current branch. Auto-merge/rebase, un/stash.
-
-$ git publish &lt;branch&gt;
-# Publishes branch to remote server.
-
-$ git unpublish &lt;branch&gt;
-# Removes branch from remote server.
-
-$ git harvest &lt;branch&gt;
-# Auto-merge/rebase commits from given branch.
-
-$ git sprout &lt;branch&gt;
-# Sprout a new branch from the current branch.
-
-$ git graft &lt;branch&gt;
-# Merge unpublished branch into current branch, then remove it.
-
-$ git branches
-# Nice &amp; pretty list of branches + publication status.
-</code></pre>
-
-<p><strong>Installing Legit</strong></p>
-
-<p><strong>To install the legit command:</strong></p>
-
-<pre><code>$ pip install legit
-</code></pre>
-
-<p><strong>To enable the git aliases:</strong></p>
-
-<pre><code>$ legit install
-</code></pre>
-
-<p><strong><em>Nice and simple — the way it should be.</em></strong></p>
-
-<p>github : <a href="https://github.com/kennethreitz/legit"> legit </a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-23T12:16:00+08:00" pubdate data-updated="true">Aug 23<span>rd</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/23/le-dot-git-for-humans//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi/">使用Gnupg 对日志加密</a></h1>
-	<div class="entry-content">
-		<p><strong>关于加密:</strong></p>
-
-<p>理论上你不应该为你的信息在储存和传送过程中的安全而担心. 然国内局域网环境恶劣,众所周知.何况还有伟大的GFW..</p>
-
-<p><em>现代密码学的发展使得普通人也可以使用加密技术</em>  比如<a href="http://www.gnupg.org/">GnuPG</a> 就可以帮你在数据传输过程中签名和加密,而且是跨平台的.</p>
-
-<p><a href="http://www.gnupg.org/">GnuPG</a> 采用 RSA 体系,这是一种非对称的加密方式.过程是:先生成一对密钥,私钥自己保存,而公钥可以公开到任意场景.数据发送方使用公钥加密的内容,只有你可以用私钥解开;你自己用私钥加密的内容,只有用你的公钥可以解开.so,你只需要公开你的公钥,对方就可以用你的公钥给你发送数据,这数据只有你可以解开;如果双方交换了各自的公钥,就可以实现双方相互之间的加密通讯了.</p>
-
-<p><strong>使用:</strong></p>
-
-<p>背景: 某项目的log数据, 机密且敏感.</p>
-
-<p>于是设计使用gnupg 为之传输加密.</p>
-
-<p>使用<a href="http://code.google.com/p/python-gnupg/" >python-gnupg</a> .</p>
-
-<p>使用很简单:</p>
-
-<pre><code>import gnupg
-def encrypt_line(line):
-    gpg = gnupg.GPG(gnupghome=GPG_HOME)
-    encrypted_data = gpg.encrypt(line, '***@')
-    encrypted_string = str(encrypted_data)
-    print 'ok: ', encrypted_data.ok
-    return encrypted_string
-</code></pre>
-
-<p>具体做法是, 使用具体机器名和邮箱作为sign, 生成一对公私钥. 私钥单独一台服务器保存..</p>
-
-<p>python logging在代码里收集支付信息, 通过使用公钥加密, 丢给<a href="http://en.wikipedia.org/wiki/Syslog">syslog</a>, 转发至具体的日志server.</p>
-
-<p>虽然流程繁琐, 但目前想来, 还算通用.</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-16T18:22:00+08:00" pubdate data-updated="true">Aug 16<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/10/llvm-bitcode-into-python-dot/">LLVM Bitcode Into Python..</a></h1>
-	<div class="entry-content">
-		<p>传统的Python程序员屌丝,可能会使用ctypes直接调用由C编译出来的函数,所谓的调用c的动态链接库.好处是接口简洁,兼容绝大部分的C类型数据结构..收益也很明显,大多都是为了解决性能上的问题.</p>
-
-<pre><code>import ctypes;
-h = ctypes.CDLL('**.so')
-</code></pre>
-
-<p>再说说LLVM (Low Level Virtual Machine) 一个低级别的虚拟机.. 但和JVM等等传统意义上的虚拟机不一样的是, LLVM能够在编译期优化、链接优化、甚至在线编译优化.</p>
-
-<p>LLVM严格说来是一个编译器架构体系. 怎么说呢? 编译器的开发者仅需开发一个可以把原始码转换成LLVM的bitcode的格式(frontend),而转换至机器语言的部分则由另一批开发人员开发(backend). 这样做的好处是使得程序语言可以很轻松的跨越各种平台(LLVM在各个平台所使用的bitcode是一样的).</p>
-
-<p>然后, 我想介绍的是这么一个东东: <a href="https://github.com/dabeaz/bitey">Bitey </a></p>
-
-<p>它可以把以上提到的两个概念衔接到一起&#8230; 它可以将LLVM的bitcode直接导入到Python中作为一个扩展模块.</p>
-
-<p>开始前提是, 你开启了configure &#8211;enable-shared=yes编译选项. 和安装了<a href="http://www.llvmpy.org">link text</a>llvm-py python for llvm扩展.</p>
-
-<p><strong>Ok, 首先, 我写了一个很简单C版本的伪随机数生成器.</strong></p>
-
-<pre><code>//srands.c
-#include &lt;stdio.h&gt;                                   
-#include &lt;time.h&gt;
-
-int srandom()
-{
-    int random;
-    srand( (unsigned)time( NULL ) );
-    random = rand();
-    return random;
-}
-</code></pre>
-
-<p>然后, 我通过clang 把它编译成LLVM bitcode:</p>
-
-<pre><code>bash % clang -emit-llvm -c srands.c
-</code></pre>
-
-<p>这将会生成一个srands.o文件,它包含了LLVM bitcode. 现在,只需把它导入到Python:</p>
-
-<pre><code>&gt;&gt;&gt; import bitey
-&gt;&gt;&gt; import srands
-&gt;&gt;&gt; srands.srandom()
-5788877353
-&gt;&gt;&gt;
-</code></pre>
-
-<p>没错,就是这样.bitey不使用C编译器,连接器,或动态装载器. 你不需要写包装函数,只需要正常的实现一个C程序,然后,编译,导入和完成.</p>
-
-<p>bitey兼容大多数C数据类型,包括整数,浮点数,void,指针,数组和结构体.事实上因为它复用了ctypes的基础接口.</p>
-
-<p>下面是一个稍微复杂一点的结构体数据类型的交互:</p>
-
-<pre><code>/* point.c */
-#include &lt;math.h&gt;
-
-struct Point {
-    double x;
-    double y;
-};
-
-double distance(struct Point *p1, struct Point *p2) {
-    return sqrt((p1-&gt;x - p2-&gt;x)*(p1-&gt;x - p2-&gt;x) +
-                (p1-&gt;y - p2-&gt;y)*(p1-&gt;y - p2-&gt;y));
-}
-</code></pre>
-
-<p>And then 运行:</p>
-
-<pre><code>% clang -emit-llvm -c point.c
-% python
-&gt;&gt;&gt; import bitey
-&gt;&gt;&gt; import point
-&gt;&gt;&gt; p1 = point.Point(3,4)
-&gt;&gt;&gt; p2 = point.Point(6,8)
-&gt;&gt;&gt; point.distance(p1,p2)
-5.0
-&gt;&gt;&gt;
-</code></pre>
-
-<p>需要说明的是,LLVM的bitcode不编码结构域的名称.因此,Bitey需将它们分配给这样的索引元素变量:</p>
-
-<pre><code>&gt;&gt;&gt; p1.e0         # (Returns the .x component)
-3
-&gt;&gt;&gt; p1.e1         # (Returns the .y component)
-4
-</code></pre>
-
-<p>也可以使用LLVM &#8220;高级主题&#8221;中所说的预加载模块, 让你瞬间变身高富帅..</p>
-
-<p>如果需要把两个LLVM的目标文件一起合并成一个单一的导入模块,使用llvm-ld命令:</p>
-
-<pre><code>% llvm-ld point.o srands.o -b combined.o
-% python
-&gt;&gt;&gt; import bitey
-&gt;&gt;&gt; import combined
-&gt;&gt;&gt; combined.srandom()
-5345345646
-&gt;&gt;&gt; p1 = combined.Point(3,4)
-&gt;&gt;&gt; p2 = combined.Point(6,8)
-&gt;&gt;&gt; combined.distance(p1,p2)
-5.0
-&gt;&gt;&gt;
-</code></pre>
-
-<p>很多时候,我们写的C代码需要链接外部库.于是在导入之前可以采取特殊的方法来加载库.
-比如:</p>
-
-<pre><code># OS-X
-% gcc -bundle -export_dynamic srands.c -o libsrands.so
-
-# Linux
-% gcc -shared srands.c -o libsrands.so
-</code></pre>
-
-<p>现在,假设有一些C代码要访问这个库:</p>
-
-<pre><code>/* sample.c */
-#include &lt;stdio.h&gt;
-extern int srandom();
-
-void print_srandom() {
-    int n = 5;
-    // 随机数生成,打印5次.
-    while (n -- &gt;= 0) {
-        printf("%d\n", srandom());
-    }
-}
-</code></pre>
-
-<p>你很希望它能正常执行, 但不幸的是, 它报错了&#8230;</p>
-
-<pre><code>% clang -emit-llvm -c sample.c
-% python
-&gt;&gt;&gt; import bitey
-&gt;&gt;&gt; import sample
-LLVM ERROR: Program used external function 'srandom' which could not be resolved!
-%
-</code></pre>
-
-<p>不怕不怕&#8230; 问题可以这样解决:</p>
-
-<pre><code> % python
- &gt;&gt;&gt; import bitey
- &gt;&gt;&gt; bitey.load_library("./libsrands.so")
-&lt;CDLL './libsrands.so', handle 13203afc60 at 10179d190&gt;
- &gt;&gt;&gt; import sample
- &gt;&gt;&gt; sample.print_srandom()
- 354534534
- 65645434
- 5454535
- 546456546645
- 45345345
- &gt;&gt;&gt;
-</code></pre>
-
-<p>需要说明的是,Bitey不使用C编译器,连接器,动态加载程序,或者涉及子进程调用.它是完全独立的,粘合了llvm-py和ctypes的功能.</p>
-
-<p>自动绑定</p>
-
-<p>在以上例子中,它使用import bitey的方式来识别和加载模块.如果你想跳过这一步,让一切自动,可以创建一个bitey.pth文件,它包含了下面的声明:</p>
-
-<pre><code>#bitey.pth
-import bitey
-</code></pre>
-
-<p>现在,只需要把这个文件复制到Python的site-packages目录下.</p>
-
-<p>That&#8217;s all..  : )</p>
-
-<p>参考: <a href="https://github.com/dabeaz/bitey"> bitey on github </a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-10T14:46:00+08:00" pubdate data-updated="true">Aug 10<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/10/llvm-bitcode-into-python-dot//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/08/zen-yao-chuang-jian-ke-kao-de-wang-luo-fu-wu/">怎么创建可靠的网络服务?</a></h1>
-	<div class="entry-content">
-		<p>还记得若干年前的c10k问题,现今软硬件的不断更迭,开源社区的蓬勃壮大,各种问题,似乎已不是什么问题.
-但还是萌生了一些想法,在此分享一些运营技巧,不限语言, 不限网站.</p>
-
-<p>创建可扩展的和可靠的服务归结为以下:</p>
-
-<p><strong>监视一切:</strong></p>
-
-<pre><code>必须有一个清晰的画面在任何时间上发生了什么事.过去的表现如何,
-重视日志,记录应用程序中的可觉察指标,并尽量将其可视化,可视化响应时间,pv,以及等等..
-使用Google Analytics是不够的,你还需要更多强大的辅助工具.
-</code></pre>
-
-<p><strong>积极主动:</strong></p>
-
-<pre><code>主动备份和尽早对未来负载做好规划预期,不要等到网站失去响应的时候才开始想到优化.
-如果可以,度量关于你的系统可以处理多少更多的用户,这样就可以采取猜测预估,认为哪些策略可以适用.
-</code></pre>
-
-<p><strong>当崩溃发生时的通知:</strong></p>
-
-<pre><code>使用诸如&lt;a href="http://pingdom.com/"&gt;PingDom&lt;/a&gt;类的服务
-或者像&lt;a href="http://github.com/amix/crash_hound"&gt;crash_hound&lt;/a&gt;的开源库.
-</code></pre>
-
-<p><strong>你可以使用的工具</strong></p>
-
-<p>我用了很多工具,没有必要重新造轮子,我强烈推荐他们.</p>
-
-<p><strong>不要失去对任何事物的实时监控权</strong></p>
-
-<p>我读到有关<a href="https://github.com/etsy/statsd/">statsd</a>和<a href="http://graphite.wikidot.com/">Graphite</a>, 和拜读了这篇文章<a href="http://instagram-engineering.tumblr.com/post/20541814340/keeping-instagram-up-with-over-a-million-new-users-in">Keeping Instagram up with over a million new users in twelve hours. </a></p>
-
-<p>读完这篇文章后,我很兴奋,我花了一天时间去安装statsd+Graphite和运行。Graphite起步有点复杂,但收益很明显,我必须说,它改变了我的生活.这个设置可以让你实时跟踪,却没有任何性能损失（statsd使用非阻塞的UDP通讯）.我跟踪的平均响应时间,错误的数量,注册量,同步命令的平均响应时间等等,跨服务器和跨服务.</p>
-
-<p>这是非常有用的,比如当你做了很多的部署,但你却可以很快地看到你的最新部署是否引入错误或性能问题.</p>
-
-<p>下面是我的Graphite dashboards:</p>
-
-<p><img src="http://amix.dk/uploads/statsd.png"></img></p>
-
-<p><strong>监视性能,如果系统崩溃时能立刻得到通知</strong></p>
-
-<p>Pingdom 是非常有用的一个服务,因为它可以在世界多个地点跟踪性能,当你的网站崩溃时,它可以短信通知你. 并且Pingdom也是公开的,可以让用户跟踪你的正常运行时间和性能（对用户而言,这是非常有用的服务）.</p>
-
-<p>还有一些强大的工具,比如<a href="http://github.com/amix/crash_hound">crash_hound</a>,可以让你的程序得到通知. 例如:我收到一条短信,条件是,如果一个队列crash或它已经失去处理能力. 而我们的通知模块中,大部分都是安装使用不到10行代码的小脚本.</p>
-
-<p>Pingdom的显页面的样子:</p>
-
-<p><img src="http://amix.dk/uploads/pingdom.png"></img></p>
-
-<p><strong>central logger 记录每一个错误</strong></p>
-
-<p>我们有一个中央的日志处理系统,记录着每一个错误,并显示在一个中央位置,对应每一个错误,我们可以看到一个请求的上下文环境.这是一个非常必要的Web服务工具，因为它使你跟踪错误变的非常容易.</p>
-
-<p>下面是我们的中央记录器看起来像:</p>
-
-<p><img src="http://amix.dk/uploads/central_logger.png"></img></p>
-
-<p>我相信有很多开源工具可以做到这一点（但我没有找到最适合我们的,所以我们自己实现了一套）.</p>
-
-<p><strong>SQL monitor</strong></p>
-
-<p>我们有一个SQL聚合查询,它记录着最耗时或最耗资源的查询记录.我们也有一个请求的记录,记录着同样的数据.</p>
-
-<p>如果你想知道你的代码,哪一部分是值得的优化, 那么这两个工具必不可少.</p>
-
-<p>我之前开源了一个工具<a href="http://amix.dk/blog/viewEntry/19359">request logger</a>（它使用非常简单,而且很容易hack.）</p>
-
-<p>这里有一个截图:</p>
-
-<p><img src="http://amix.dk/uploads/request_logger.jpg"></img></p>
-
-<p><strong>监控服务器</strong></p>
-
-<p>亚马逊AWS托管是一种特权，因为他们提供了很多伟大的监控工具（如CPU使用率和报警等,如果你的服务器可能使用超额的资源, 那么这种监控就很有必要）.</p>
-
-<p>以及一些开源工具。在Plurk(一个类微博的网站)，我们使用<a href="http://www.cacti.net/">Cacti</a> 和 <a href="http://www.nagios.org/">Nagios</a>,这两个都是很复杂和强大的工具,值得你花时间去深入研究它, 因为它们可以给你以很cool的可视化图像形式显示正在运行的服务器和服务的状态.</p>
-
-<p>下面是一些亚马逊的监测工具的截图:</p>
-
-<p><img src="http://amix.dk/uploads/ec2.png"></img></p>
-
-<p>我希望这些经验对你们有用.将来如:central logger or SQL monitor 这类有效的监控工具都将开源.</p>
-
-<p>敬请关注,一如既往:happy hacking!</p>
-
-<p>蹩脚译文出自: <a href="http://amix.dk/blog/post/19709#How-to-create-very-reliable-web-services">How to create very reliable web services </a>   Thanks amix.</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-08T18:53:00+08:00" pubdate data-updated="true">Aug 8<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/08/zen-yao-chuang-jian-ke-kao-de-wang-luo-fu-wu//index.html#disqus_thread">Comments</a></span>
 	
 </div></article>
 

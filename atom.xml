@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-08-24T18:03:20+08:00</updated>
+  <updated>2012-08-31T18:23:01+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -12,6 +12,383 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[致在天堂的奶奶]]></title>
+    <link href="http://xuanhan863.github.com/blog/2012/08/31/zhi-zai-tian-tang-de-nai-nai/"/>
+    <updated>2012-08-31T18:03:00+08:00</updated>
+    <id>http://xuanhan863.github.com/blog/2012/08/31/zhi-zai-tian-tang-de-nai-nai</id>
+    <content type="html"><![CDATA[<p><strong>今天是农历七月十五(中元节), 今年2月26号, 晚9:27分, 奶奶因病挥别.
+到今天为止已是187天. </strong></p>
+
+<p><strong>奶奶, 您在天堂那边还好么? 天堂那边真有那么好? 好到逝去的人, 一个个都不愿意回来</strong></p>
+
+<p>从小都在奶奶身边, 那种被矫宠的依赖伴随着我长大..
+奶奶生前最疼我了, 什么都喜欢留给我, 那种毫不掩饰的偏心, 每个人都看在眼里.</p>
+
+<p>奶奶的离去, 可能是我生命中的一块阴影. 每次想到回家后, 将不再能享受到她给我亲手做的可口饭菜, 和近乎无微不至的照顾关爱, 我就眼泪直流.</p>
+
+<p><strong>记忆是一种负担, 它让我陷入无止境的回忆之中, 痛不欲生, 不能自拔.</strong></p>
+
+<p><strong>有些人永远不会忘, 因为舍不得.</strong></p>
+
+<p><strong>我将永远铭记着您从前对我的关爱, 若有来生, 还将重逢.</strong></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在Python 中跟踪嵌套函数调用]]></title>
+    <link href="http://xuanhan863.github.com/blog/2012/08/31/tracing-nested-function-call-in-python/"/>
+    <updated>2012-08-31T15:21:00+08:00</updated>
+    <id>http://xuanhan863.github.com/blog/2012/08/31/tracing-nested-function-call-in-python</id>
+    <content type="html"><![CDATA[<p>有时,当执行复杂的函数调用时,特别是那些涉及到递归算法的函数,很希望能跟踪到它的函数调用堆栈,能跟踪到在执行过程中实际使用了哪些参数和返回值, 但又不想使用诸如pdb之类的debug工具.</p>
+
+<p>下面是一个简单的Python decorator（适用于2.7和3.2 +）</p>
+
+<pre><code>import sys
+from functools import wraps
+
+class TraceCalls(object):
+    """ 
+        使用这个decorator 可以追踪到函数递归调用的深度.
+    """
+    def __init__(self, stream=sys.stdout, indent_step=2, show_ret=False):
+        self.stream = stream
+        self.indent_step = indent_step
+        self.show_ret = show_ret
+
+        # This is a class attribute since we want to share the indentation
+        # level between different traced functions, in case they call
+        # each other.
+        TraceCalls.cur_indent = 0
+
+    def __call__(self, fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            indent = ' ' * TraceCalls.cur_indent
+            argstr = ', '.join(
+                [repr(a) for a in args] +
+                ["%s=%s" % (a, repr(b)) for a, b in kwargs.items()])
+            self.stream.write('%s%s(%s)\n' % (indent, fn.__name__, argstr))
+
+            TraceCalls.cur_indent += self.indent_step
+            ret = fn(*args, **kwargs)
+            TraceCalls.cur_indent -= self.indent_step
+
+            if self.show_ret:
+                self.stream.write('%s--&gt; %s\n' % (indent, ret))
+            return ret
+        return wrapper
+</code></pre>
+
+<p>我们可以这样用它:</p>
+
+<pre><code>@TraceCalls()
+def iseven(n):
+    return True if n == 0 else isodd(n - 1)
+
+@TraceCalls()
+def isodd(n):
+    return False if n == 0 else iseven(n - 1)
+
+print(iseven(7))
+</code></pre>
+
+<p>输出它的函数堆栈调用层级:</p>
+
+<pre><code>iseven(7)
+  isodd(6)
+    iseven(5)
+      isodd(4)
+        iseven(3)
+          isodd(2)
+            iseven(1)
+              isodd(0)
+False
+</code></pre>
+
+<p>这个decorator tracer 还有几个有用的参数:</p>
+
+<pre><code>stream: 打印跟踪输出,默认情况下输出到到sys.stdout.
+indent_step: 定义每个嵌套调用,有多少个空间字符的缩进.
+show_ret: 设置为true时,显示每个调用的返回值.
+
+
+
+@TraceCalls(indent_step=4, show_ret=True)
+def flatten(lst):
+    if isinstance(lst, list):
+        return sum((flatten(item) for item in lst), [])
+    else:
+        return [lst]
+
+list(flatten([1, 2, [3, [4, 5], 6, [7, [9], 12]], 4, [6, 9]]))
+</code></pre>
+
+<p>调整后的输出:</p>
+
+<pre><code>flatten([1, 2, [3, [4, 5], 6, [7, [9], 12]], 4, [6, 9]])
+    flatten(1)
+    --&gt; [1]
+    flatten(2)
+    --&gt; [2]
+    flatten([3, [4, 5], 6, [7, [9], 12]])
+        flatten(3)
+        --&gt; [3]
+        flatten([4, 5])
+            flatten(4)
+            --&gt; [4]
+            flatten(5)
+            --&gt; [5]
+        --&gt; [4, 5]
+        flatten(6)
+        --&gt; [6]
+        flatten([7, [9], 12])
+            flatten(7)
+            --&gt; [7]
+            flatten([9])
+                flatten(9)
+                --&gt; [9]
+            --&gt; [9]
+            flatten(12)
+            --&gt; [12]
+        --&gt; [7, 9, 12]
+    --&gt; [3, 4, 5, 6, 7, 9, 12]
+    flatten(4)
+    --&gt; [4]
+    flatten([6, 9])
+        flatten(6)
+        --&gt; [6]
+        flatten(9)
+        --&gt; [9]
+    --&gt; [6, 9]
+--&gt; [1, 2, 3, 4, 5, 6, 7, 9, 12, 4, 6, 9]
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[a git launcher]]></title>
+    <link href="http://xuanhan863.github.com/blog/2012/08/31/a-git-launcher/"/>
+    <updated>2012-08-31T12:26:00+08:00</updated>
+    <id>http://xuanhan863.github.com/blog/2012/08/31/a-git-launcher</id>
+    <content type="html"><![CDATA[<p>a git launcher : )</p>
+
+<p>当你输错后, 有一个ASCII码的terminal动画效果. 之后, 它会把你的意思正确执行.</p>
+
+<p><img src="http://r-wos.org/media/gti-animation"></img></p>
+
+<p>只有一个C 文件的实现, 只针对git命令.</p>
+
+<pre><code>$ git clone https://github.com/rwos/gti.git
+$ make
+$ make install # as root, probably
+</code></pre>
+
+<p><strong>参考: <a href="http://r-wos.org/hacks/gti">http://r-wos.org/hacks/gti</a></strong></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[一个通用的C++ 单例模型 ]]></title>
+    <link href="http://xuanhan863.github.com/blog/2012/08/30/a-generic-singleton/"/>
+    <updated>2012-08-30T17:29:00+08:00</updated>
+    <id>http://xuanhan863.github.com/blog/2012/08/30/a-generic-singleton</id>
+    <content type="html"><![CDATA[<p>昨天,我发现一个问题,这是一年前未能解决的方案.这个问题很简单:创建一个通用的单例对象模型.对单例模型的定义是: &#8220;确保一个类只有一个实例,并提供一个全局访问点&#8221;.</p>
+
+<p>常见的版本是使用模板模式（CRTP）.先介绍CRTP,这个概念很简单,只是继承了一个模板基类,它允许创建静态多态性或者实例计数器&#8230; 可以参考维基百科对此的定义 <a href="http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously recurring template pattern</a></p>
+
+<p>使用CRTP的方式, 每次程序结束时, 我都需要显示调用一次 destroySingleton.
+所以,我必须设计一个通用的解决方案,围绕整个对象生命周期, 从对象构造到它调用结束被析构.</p>
+
+<p>最初,我使用两个阶级,两个构造函数,我虽然打的事实,不使用模板函数的实例,可以容忍不正确（没有类型检查，没有名字结合&#8230;这必须是有效的语法）。下面是一个例子：</p>
+
+<pre><code>#include &lt;string&gt;
+
+template &lt;class T&gt;
+class Singleton
+{
+public:
+  static T* get_instance(int v)
+  {
+    if (!instance_)
+      instance_ = new T(v);
+
+    return instance_;
+  }
+
+  static T* get_instance(std::string s)
+  {
+    if (!instance_)
+      instance_ = new T(s);
+
+    return instance_;
+  } // Sounds familiar...
+
+  static void destroy_instance()
+  {
+    delete instance_;
+    instance_ = nullptr;
+  }
+
+private:
+  static T* instance_;
+};
+
+template &lt;class T&gt; T* Singleton&lt;T&gt;::instance_ = nullptr;
+
+// The classes that will be singletons:
+
+class Single: public Singleton&lt;Single&gt;
+{
+public:
+  Single(std::string s): s_(s) {}
+
+private:
+  std::string s_;
+};
+
+class Map: public Singleton&lt;Map&gt;
+{
+public:
+  Map(int scale): scale_(scale) {}
+
+private:
+  int scale_;
+};
+
+// How to create and destroy them:
+
+int main()
+{
+  Single* s = Single::get_instance("Forever Alone");
+  Map* m = Map::get_instance(42);
+
+  // Use these singletons.
+
+  Map::destroy_instance();
+  Single::destroy_instance();
+}
+</code></pre>
+
+<p>这个版本实现了通用单例的一半,它完全非侵入式的转化为单例类.</p>
+
+<p>事实上,必须建立两个GET_INSTANCE,因为它有两个不同的构造函数.由于可能对象构造函数的参数组合的数量是无限的,所以这个解决方案并不好.</p>
+
+<p>昨天,研究了一下<a href="http://enki-tech.blogspot.fr/2012/08/c11-vector-improved-how-it-works.html"> C++ 11</a>机制, 发现它允许创建emplace_back. 其实,我们只需要创建一个GET_INSTANCE,作为参数传给构造函数.不重复,完全通用的,这就是我想要的.
+下面是Singleton类的最终版本:</p>
+
+<pre><code>#include &lt;iostream&gt;
+
+template &lt;class T&gt;
+class Singleton
+{
+public:
+  template &lt;typename... Args&gt;
+  static
+  T* get_instance(Args... args)
+  {
+    if (!instance_)
+      {
+        instance_ = new T(std::forward&lt;Args&gt;(args)...);
+      }
+
+    return instance_;
+  }
+
+  static
+  void destroy_instance()
+  {
+    delete instance_;
+    instance_ = nullptr;
+  }
+
+private:
+  static T* instance_;
+};
+
+template &lt;class T&gt; T*  Singleton&lt;T&gt;::instance_ = nullptr;
+
+class Map: public Singleton&lt;Map&gt;
+{
+  friend class Singleton&lt;Map&gt;;
+private:
+  Map(int size_x, int size_y): size_x_{size_x}, size_y_{size_y} {}
+
+public:
+  int size_x_;
+  int size_y_;
+};
+
+int main()
+{
+  Map* m = Map::get_instance(4, 5);
+
+  std::cout &lt;&lt; m-&gt;size_y_ &lt;&lt; std::endl; // Outputs 5.
+
+  Map::destroy_instance();
+}
+</code></pre>
+
+<p>简单翻译, 原文出处: <a href="http://enki-tech.blogspot.fr/2012/08/c11-generic-singleton.html">C++11: A generic Singleton</a>
+自备翻墙.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用GnuPG 对文件进行对称加密]]></title>
+    <link href="http://xuanhan863.github.com/blog/2012/08/28/simple-password-encrypted-files-w-slash-gnupg/"/>
+    <updated>2012-08-28T13:45:00+08:00</updated>
+    <id>http://xuanhan863.github.com/blog/2012/08/28/simple-password-encrypted-files-w-slash-gnupg</id>
+    <content type="html"><![CDATA[<p>在互联网上发送或共享一些文件文档,我可能希望它是安全的,加过密的,即使被截获,我也不希望出现类似于艳照门的事件,尽管在码农的生活中可能无艳可照&#8230;
+在 Linux 或 OSX, 我可以使用一个 <a href="http://huoxu.me/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi/"> GnuPG </a> 的工具对我想要对外共享的文件进行密码保护.</p>
+
+<pre><code>安装 GnuPG
+使用Gentoo. 
+
+sudo emerge gpg
+
+
+在Mac OSX 下可以使用 Homebrew:
+
+brew install gpg
+</code></pre>
+
+<p>加密一个敏感文件</p>
+
+<pre><code>gpg -c sensitive.txt
+</code></pre>
+
+<p>因为是对称加密, 它会提示:</p>
+
+<pre><code>Enter passphrase:
+Repeat passphrase: 
+</code></pre>
+
+<p>如果成功, 会生成一个sensitive.txt.gpg文件, 当然了, 它的内容是人类不可读的.</p>
+
+<p>你可以随意分发传送这个文件..</p>
+
+<p>接收方只需要对密文件:</p>
+
+<pre><code>gpg sensitive.txt.gpg
+</code></pre>
+
+<p>当然了, 假设对方是知道你的对称密码的.</p>
+
+<pre><code>gpg: CAST5 encrypted data
+Enter passphrase: 
+</code></pre>
+
+<p>输入密码短语后, 它会还原成原文件 sensitive.txt.</p>
+
+<p>Dropbox作为云端文件存储利器, 方便的同时, 可能也会带来安全隐患, 很有必要对你存储的文件做一层加密.</p>
+
+<p>使用基于gpg的Dropbox 加密项目, 基本可以做到无忧.</p>
+
+<p><a href="https://github.com/woodwardjd/lockbox/">https://github.com/woodwardjd/lockbox/</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[JSON + UDP + DHT = Freedom ?]]></title>

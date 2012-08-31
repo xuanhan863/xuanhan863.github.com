@@ -47,8 +47,32 @@
         <lastmod>2012-08-24T18:03:07+08:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://xuanhan863.github.com/blog/2012/08/28/simple-password-encrypted-files-w-slash-gnupg/
+        </loc>
+        <lastmod>2012-08-31T17:09:26+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://xuanhan863.github.com/blog/2012/08/30/a-generic-singleton/</loc>
+        <lastmod>2012-08-31T17:56:15+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://xuanhan863.github.com/blog/2012/08/31/a-git-launcher/</loc>
+        <lastmod>2012-08-31T17:26:50+08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://xuanhan863.github.com/blog/2012/08/31/tracing-nested-function-call-in-python/
+        </loc>
+        <lastmod>2012-08-31T15:42:15+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://xuanhan863.github.com/blog/2012/08/31/zhi-zai-tian-tang-de-nai-nai/</loc>
+        <lastmod>2012-08-31T18:22:54+08:00</lastmod>
+    </url>
+    <url>
         <loc>http://xuanhan863.github.com/blog/archives/</loc>
-        <lastmod>2012-08-24T18:03:07+08:00</lastmod>
+        <lastmod>2012-08-31T18:22:54+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/404.html</loc>
@@ -60,10 +84,10 @@
     </url>
     <url>
         <loc>http://xuanhan863.github.com/</loc>
-        <lastmod>2012-08-24T18:03:07+08:00</lastmod>
+        <lastmod>2012-08-31T18:22:54+08:00</lastmod>
     </url>
     <url>
         <loc>http://xuanhan863.github.com/archives/</loc>
-        <lastmod>2012-08-24T18:03:07+08:00</lastmod>
+        <lastmod>2012-08-31T18:22:54+08:00</lastmod>
     </url>
 </urlset>
