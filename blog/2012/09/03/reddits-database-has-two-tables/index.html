@@ -3,14 +3,11 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Le.git for humans - huoxu.me</title>
+	<title>架构学习: Reddit 的数据库只有两个表 - huoxu.me</title>
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="Let&#8217; git..
-让git的工作流程变的更可读, 简单. $ git switch &lt;branch&gt;
-# Switches to branch. Stashes and restores unstaged changes. $ git sync
-# &hellip;">
+	<meta name="description" content="最近,Obama现身Reddit, 让这个一向以死忠Geek横行的小众技术社区又火了起来. 回顾Reddit 的架构史, 2010 年时, 该创始人Steve Huffman 在High Scalability post from 2010 share 过一个ppt, &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -79,50 +76,32 @@
 	<div id="content" class="inner"><div>
 <article class="hentry" role="article">
   
-	<h1 class="title">Le.git for Humans</h1>
-	<div class="entry-content"><p><strong>Let&#8217; git..
-让git的工作流程变的更可读, 简单.</strong></p>
+	<h1 class="title">架构学习: Reddit 的数据库只有两个表</h1>
+	<div class="entry-content"><p>最近,<a href="http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=4&cad=rja&sqi=2&ved=0CC4QFjAD&url=http%3A%2F%2Fwww.reddit.                                         com%2Fr%2FIAmA%2Fcomments%2Fz1c9z%2Fi_am_barack_obama_president_of_the_united_states%2F&ei=TmVEUKSsIKSiiAfpp4GwBw&usg=AFQjCNE-P4G8--10-uM56yuDRG4SnYmceg">Obama现身Reddit</a>, 让这个一向以死忠Geek横行的小众技术社区又火了起来.</p>
 
-<pre><code>$ git switch &lt;branch&gt;
-# Switches to branch. Stashes and restores unstaged changes.
+<p>回顾Reddit 的架构史, 2010 年时, 该创始人Steve Huffman 在<a href="http://highscalability.com/blog/2010/5/17/7-lessons-learned-while-building-reddit-to-270-million-page.       html">High Scalability post from 2010</a> share 过一个ppt, 16页slides大致能一窥究竟.</p>
 
-$ git sync
-# Syncronizes current branch. Auto-merge/rebase, un/stash.
+<blockquote><p>题外话,很好奇Reddit 在<a
+href="http://www.rabbitmq.com/">RabbitMQ</a>使用方面有什么技巧?
+至少在<a
+href="http://www.douban.com">豆瓣</a>
+RabbitMQ 貌似不太可控,一动不动就把整个机器的内存都吞光了.</p></blockquote>
 
-$ git publish &lt;branch&gt;
-# Publishes branch to remote server.
+<p> <strong>总结的经验是: 开放 Schema,架构不要被模式化.</strong></p>
 
-$ git unpublish &lt;branch&gt;
-# Removes branch from remote server.
+<p><strong>同时也惊讶的得知他们的数据库中只有两个表</strong>.</p>
 
-$ git harvest &lt;branch&gt;
-# Auto-merge/rebase commits from given branch.
+<p>Reddit 当时花了很多时间和精力,试图保持数据库(<a href="http://www.postgresql.org">PostgreSQL</a>)的规范化和有条不紊.但当你打算新添加一列到千万量级的数据表时,数据库的行级锁会导致长时间的挂起, not work. 当然, 你也可以维护一个Master/Slave的结构, 进行热备或复制切换,但这无疑增加了运维的复杂度.</p>
 
-$ git sprout &lt;branch&gt;
-# Sprout a new branch from the current branch.
+<p>重新梳理问题. 不难发现, 在Reddit中, 一切都可以称之为一个Thing: 包括用户,链接,回复,subreddits等. Thing 有着共同的属性, 比如up/down的投票,类型和创建日期. 由Thing再衍生一个Data table. Data table有三列: 对应Thing的ID,键和值, 类json的数据格式( 和豆瓣的使用方法doml基本相近). 这样, 数据库的维护就变的无痛,容易了.. 当增加新功能时, 只需要维护相应的Key/Value.</p>
 
-$ git graft &lt;branch&gt;
-# Merge unpublished branch into current branch, then remove it.
+<p>这样做的代价就是你没法使用关系型数据库的features. 没法进行表之间的join, 而且需要你自己维护一致性的问题. 但没有join, 也意味着简单使用一致性hash 就可以做到数据的散列分布, 数据表的切割也变的容易.</p>
 
-$ git branches
-# Nice &amp; pretty list of branches + publication status.
-</code></pre>
+<p>这类似于<a href="http://www.mongodb.org">MongoDB</a>, <a href="http://redis.io">Redis</a> 之类的 K/V型db. 它让你在存储数据时不必再考虑模式或索引的问题, 很容易地添加更多的类型到现有对象,无痛的架构更新或数据库切分. 同时兼顾高性能 O(1).</p>
 
-<p><strong>Installing Legit</strong></p>
+<p>从 Hacker News 的<a href="http://news.ycombinator.com/item?id=4468265">这个post</a> 看起来,他们为每个subreddit使用单独的数据库, 当然了, 还是&lt;Thing, Data>..</p>
 
-<p><strong>To install the legit command:</strong></p>
-
-<pre><code>$ pip install legit
-</code></pre>
-
-<p><strong>To enable the git aliases:</strong></p>
-
-<pre><code>$ legit install
-</code></pre>
-
-<p><strong><em>Nice and simple — the way it should be.</em></strong></p>
-
-<p>github : <a href="https://github.com/kennethreitz/legit"> legit </a></p>
+<p>&lt;可以自由转载,请注明出处></p>
 </div>
 
 
@@ -139,12 +118,12 @@ $ git branches
   
 
 
-<time datetime="2012-08-23T12:16:00+08:00" pubdate data-updated="true">Aug 23<span>rd</span>, 2012</time></div>
+<time datetime="2012-09-03T16:10:00+08:00" pubdate data-updated="true">Sep 3<span>rd</span>, 2012</time></div>
 	<div class="tags">
 
 </div>
 	
-		<span class="comments"><a href="/blog/2012/08/23/le-dot-git-for-humans/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2012/09/03/reddits-database-has-two-tables/#disqus_thread">Comments</a></span>
 	
 </div>
   <footer>
@@ -166,7 +145,7 @@ $ git branches
   
 
 
-<time datetime="2012-08-23T12:16:00+08:00" pubdate data-updated="true">Aug 23<span>rd</span>, 2012</time>
+<time datetime="2012-09-03T16:10:00+08:00" pubdate data-updated="true">Sep 3<span>rd</span>, 2012</time>
       
 
 
@@ -179,7 +158,7 @@ $ git branches
   <div class="addthis_toolbox addthis_default_style ">
   
      
-        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/08/23/le-dot-git-for-humans/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/08/23/le-dot-git-for-humans/" >Tweet</a>
+        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/09/03/reddits-database-has-two-tables/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/09/03/reddits-database-has-two-tables/" >Tweet</a>
      
      
      
@@ -189,10 +168,8 @@ $ git branches
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi/" title="Previous Post: 使用Gnupg 对日志加密">&laquo; 使用Gnupg 对日志加密</a>
+        <a class="basic-alignment left" href="/blog/2012/08/31/zhi-zai-tian-tang-de-nai-nai/" title="Previous Post: 致在天堂的奶奶">&laquo; 致在天堂的奶奶</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2012/08/23/zhen-xi/" title="Next Post: 珍惜身边的人">珍惜身边的人 &raquo;</a>
       
     </p>
   </footer>
@@ -309,8 +286,8 @@ Images are wrapped in divs classed "flickr_badge_image" with ids "flickr_badge_i
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/08/23/le-dot-git-for-humans/';
-        var disqus_url = 'http://xuanhan863.github.com/blog/2012/08/23/le-dot-git-for-humans/';
+        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/09/03/reddits-database-has-two-tables/';
+        var disqus_url = 'http://xuanhan863.github.com/blog/2012/09/03/reddits-database-has-two-tables/';
         var disqus_script = 'embed.js';
       
     (function () {

@@ -7,9 +7,7 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="今天是农历七月十五(中元节), 今年2月26号, 晚9:27分, 奶奶因病挥别.
-到今天为止已是187天. 奶奶, 您在天堂那边还好么? 天堂那边真有那么好? 好到逝去的人, 一个个都不愿意回来 从小都在奶奶身边, 那种被矫宠的依赖伴随着我长大..
-奶奶生前最疼我了, 什么都喜欢留给我, &hellip;">
+	<meta name="description" content="最近,Obama现身Reddit, 让这个一向以死忠Geek横行的小众技术社区又火了起来. 回顾Reddit 的架构史, 2010 年时, 该创始人Steve Huffman 在High Scalability post from 2010 share 过一个ppt, &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -76,6 +74,63 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/09/03/reddits-database-has-two-tables/">架构学习: Reddit 的数据库只有两个表</a></h1>
+	<div class="entry-content">
+		<p>最近,<a href="http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=4&cad=rja&sqi=2&ved=0CC4QFjAD&url=http%3A%2F%2Fwww.reddit.                                         com%2Fr%2FIAmA%2Fcomments%2Fz1c9z%2Fi_am_barack_obama_president_of_the_united_states%2F&ei=TmVEUKSsIKSiiAfpp4GwBw&usg=AFQjCNE-P4G8--10-uM56yuDRG4SnYmceg">Obama现身Reddit</a>, 让这个一向以死忠Geek横行的小众技术社区又火了起来.</p>
+
+<p>回顾Reddit 的架构史, 2010 年时, 该创始人Steve Huffman 在<a href="http://highscalability.com/blog/2010/5/17/7-lessons-learned-while-building-reddit-to-270-million-page.       html">High Scalability post from 2010</a> share 过一个ppt, 16页slides大致能一窥究竟.</p>
+
+<blockquote><p>题外话,很好奇Reddit 在<a
+href="http://www.rabbitmq.com/">RabbitMQ</a>使用方面有什么技巧?
+至少在<a
+href="http://www.douban.com">豆瓣</a>
+RabbitMQ 貌似不太可控,一动不动就把整个机器的内存都吞光了.</p></blockquote>
+
+<p> <strong>总结的经验是: 开放 Schema,架构不要被模式化.</strong></p>
+
+<p><strong>同时也惊讶的得知他们的数据库中只有两个表</strong>.</p>
+
+<p>Reddit 当时花了很多时间和精力,试图保持数据库(<a href="http://www.postgresql.org">PostgreSQL</a>)的规范化和有条不紊.但当你打算新添加一列到千万量级的数据表时,数据库的行级锁会导致长时间的挂起, not work. 当然, 你也可以维护一个Master/Slave的结构, 进行热备或复制切换,但这无疑增加了运维的复杂度.</p>
+
+<p>重新梳理问题. 不难发现, 在Reddit中, 一切都可以称之为一个Thing: 包括用户,链接,回复,subreddits等. Thing 有着共同的属性, 比如up/down的投票,类型和创建日期. 由Thing再衍生一个Data table. Data table有三列: 对应Thing的ID,键和值, 类json的数据格式( 和豆瓣的使用方法doml基本相近). 这样, 数据库的维护就变的无痛,容易了.. 当增加新功能时, 只需要维护相应的Key/Value.</p>
+
+<p>这样做的代价就是你没法使用关系型数据库的features. 没法进行表之间的join, 而且需要你自己维护一致性的问题. 但没有join, 也意味着简单使用一致性hash 就可以做到数据的散列分布, 数据表的切割也变的容易.</p>
+
+<p>这类似于<a href="http://www.mongodb.org">MongoDB</a>, <a href="http://redis.io">Redis</a> 之类的 K/V型db. 它让你在存储数据时不必再考虑模式或索引的问题, 很容易地添加更多的类型到现有对象,无痛的架构更新或数据库切分. 同时兼顾高性能 O(1).</p>
+
+<p>从 Hacker News 的<a href="http://news.ycombinator.com/item?id=4468265">这个post</a> 看起来,他们为每个subreddit使用单独的数据库, 当然了, 还是&lt;Thing, Data>..</p>
+
+<p>&lt;可以自由转载,请注明出处></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-03T16:10:00+08:00" pubdate data-updated="true">Sep 3<span>rd</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/09/03/reddits-database-has-two-tables//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
 
 
     <article class="post">
@@ -571,60 +626,6 @@ Enter passphrase:
 </div>
 	
 		<span class="comments"><a href="/blog/2012/08/28/simple-password-encrypted-files-w-slash-gnupg//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/24/freedom/">JSON + UDP + DHT = Freedom ?</a></h1>
-	<div class="entry-content">
-		<p>它的工作原理是发送和接收少量的JSON bit,通过UDP协议 使用有效的路由系统 基于<a href="http://en.wikipedia.org/wiki/Kademlia">Kademlia</a>.</p>
-
-<p><strong>科普时间</strong></p>
-
-<blockquote><p>Kademlia属于一种结构化的P2P网络,在Kademlia网络中,所有信息均以160比特SHA1散列哈希表条目形式加以存储,这些条目被分散地存储在各个节点上,从而以全网方式构成一张巨大的分布式哈希表</p></blockquote>
-
-<p>和日渐成熟的<a href="http://en.wikipedia.org/wiki/Distributed_hash_table">分布式哈希表</a>.
-TeleHash路由, 它就是基于一个通用的,ID或URL相关的SHA哈希散列.</p>
-
-<p><img src="http://upload.wikimedia.org/wikipedia/commons/thumb/9/98/DHT_en.svg/500px-DHT_en.svg.png"></img></p>
-
-<p>比如官网给出的获取种子的实例:</p>
-
-<pre><code>echo '{"+end":"3b6a6..."}' | nc -u telehash.org 42424
-</code></pre>
-
-<p>它将回应一个json 串:</p>
-
-<pre><code>{"_ring":17904, ".see":[ "208.68.163.247:42424", "208.68.160.25:55137"], "_br":52, "_to":"173.19.99.143:63681" }
-</code></pre>
-
-<p>感兴趣的可以去瞅瞅 <a href="http://telehash.org/"> telehash </a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-24T17:42:00+08:00" pubdate data-updated="true">Aug 24<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/24/freedom//index.html#disqus_thread">Comments</a></span>
 	
 </div></article>
 
