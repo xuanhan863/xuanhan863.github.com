@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-09-03T17:32:31+08:00</updated>
+  <updated>2012-09-03T18:06:31+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -42,7 +42,7 @@ RabbitMQ 貌似不太可控,一动不动就把整个机器的内存都吞光了.
 
 <p>从 Hacker News 的<a href="http://news.ycombinator.com/item?id=4468265">这个post</a> 看起来,他们为每个subreddit使用单独的数据库, 当然了, 还是&lt;Thing, Data>..</p>
 
-<p>&lt;可以自由转载,请注明出处></p>
+<p>可以自由转载,但请注明出处</p>
 ]]></content>
   </entry>
   
