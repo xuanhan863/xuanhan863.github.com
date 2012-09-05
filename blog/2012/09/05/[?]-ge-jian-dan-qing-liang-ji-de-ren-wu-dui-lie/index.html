@@ -3,11 +3,11 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>出错啦！ - huoxu.me</title>
+	<title>又一个简单轻量级的任务队列 - huoxu.me</title>
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="出错啦！ 出错啦。。。 看看别的吧 Tweet Recent Posts 又一个简单轻量级的任务队列 架构学习: Reddit 的数据库只有两个表 致在天堂的奶奶 在Python 中跟踪嵌套函数调用 a git launcher GitHub Repos Status updating... @ &hellip;">
+	<meta name="description" content="Message queue作为服务器之间异步通信的标配, 自然不容忽视. Darner 是一非常简单的消息队列服务器. 它不像redis 之类的in-memory swap模式, 它设计初衷就是用来处理队列远远大于内存能否实际保存的大小. 和传统的企业级Message queue &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,36 +74,104 @@
 		
 	
 	<div id="content" class="inner"><div>
-<article role="article">
+<article class="hentry" role="article">
   
-  <header>
-    <h1 class="entry-title">出错啦！</h1>
+	<h1 class="title">又一个简单轻量级的任务队列</h1>
+	<div class="entry-content"><p>Message queue作为服务器之间异步通信的标配, 自然不容忽视.</p>
+
+<p><a href="https://github.com/wavii/darner">Darner</a> 是一非常简单的消息队列服务器. 它不像<a href="http://redis.io/">redis</a> 之类的in-memory swap模式, 它设计初衷就是用来处理队列远远大于内存能否实际保存的大小. 和传统的企业级Message queue <a href="http://www.rabbitmq.com/">RabbitMQ</a>不同的是, Darner能保证进程挂掉后, 已发布但尚未消费的message不会丢失. 它通过<a href="https://code.google.com/p/leveldb/">Leveldb</a> 间接使用了内核的虚拟内存管理器. 相关话题: Leveledb是一个很赞的项目,由<a href="http://research.google.com/archive/bigtable.html">Bigtable</a>的设计和实现者: <a href="http://research.google.com/people/jeff/">Jeff Dean</a> 和 <a href="http://research.google.com/people/sanjay/">Sanjay Ghemawat</a>两位大牛发起. 因为一次写入操作只涉及一次磁盘append和一次内存写入,所以LevelDb非常适合写操作多于读操作的应用场合,之前做过on ssd的测试, merge+append的写入,对于ssd也很适用, 但就此继续说下去就喧宾夺主了, 在此不做拓展说明.</p>
+
+<p>其结果就是一个持久化的队列server,无论队列大小,往往只使用少量的驻留内存,同时还能兼顾着高性能. 官方有一个公开的<a href="https://github.com/wavii/darner/blob/master/docs/benchmarks.md"> benchmark </a></p>
+
+<p>官方宣称,Darner是近分布式的: 一组队列Server 可以通过一个名称标识去标识; 每个队列都是遵循严格有序的FIFO, 同时一个querying由一组结构松散有序的Darner Server提供. Darner 也支持可靠的双向读取, 如果一个客户端还没来得及处理Message 就已被断开, 那这条未消费的Message将会被转发给下一个客户端(如果这个client是连接状态的), 保证高吞吐量的同时也保证了可靠性.</p>
+
+<p>它用C++实现, 依赖于 <a href="http://www.boost.org/">Boost</a> 和 <a href="https://code.google.com/p/leveldb/">LevelDB</a>. 最初开发用于<a href="http://wavii.com/">wavii</a> (一个基于Facebook 的个性化订阅应用)的生产环境, 后被开源.</p>
+
+<pre><code>git clone git://github.com/wavii/darner.git
+cd darner
+cmake . &amp;&amp; make &amp;&amp; sudo make install
+</code></pre>
+
+<p><strong> 看上去很美, 但还需要找时间实际评测. </strong>
+可能是使用不当吧, 目前用的RabbitMQ 太让人抓狂了.</p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-05T10:52:00+08:00" pubdate data-updated="true">Sep 5<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/#disqus_thread">Comments</a></span>
+	
+</div>
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tony.lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-05T10:52:00+08:00" pubdate data-updated="true">Sep 5<span>th</span>, 2012</time>
+      
+
+
+      
+
+
+    </p>
     
-  </header>
-  
-  <h1>出错啦。。。</h1>
-
-<p>看看别的吧</p>
-
-  
-    <footer>
-      
-      
-        <div class="share">
+      <div class="share">
   <div class="addthis_toolbox addthis_default_style ">
   
      
-        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/404.html" data-via="" data-counturl="http://xuanhan863.github.com/404.html" >Tweet</a>
+        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/" >Tweet</a>
      
      
      
 	</div>
 </div>
 
+    
+    <p class="meta">
       
-    </footer>
-  
+        <a class="basic-alignment left" href="/blog/2012/09/03/reddits-database-has-two-tables/" title="Previous Post: 架构学习: Reddit 的数据库只有两个表">&laquo; 架构学习: Reddit 的数据库只有两个表</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -192,7 +260,10 @@
       var disqus_shortname = 'huoxu';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/';
+        var disqus_url = 'http://xuanhan863.github.com/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

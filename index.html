@@ -7,7 +7,7 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="最近,Obama现身Reddit, 让这个一向以死忠Geek横行的小众技术社区又火了起来. 回顾Reddit 的架构史, 2010 年时, 该创始人Steve Huffman 在High Scalability post from 2010 share 过一个ppt, &hellip;">
+	<meta name="description" content="Message queue作为服务器之间异步通信的标配, 自然不容忽视. Darner 是一非常简单的消息队列服务器. 它不像redis 之类的in-memory swap模式, 它设计初衷就是用来处理队列远远大于内存能否实际保存的大小. 和传统的企业级Message queue &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +74,55 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/">又一个简单轻量级的任务队列</a></h1>
+	<div class="entry-content">
+		<p>Message queue作为服务器之间异步通信的标配, 自然不容忽视.</p>
+
+<p><a href="https://github.com/wavii/darner">Darner</a> 是一非常简单的消息队列服务器. 它不像<a href="http://redis.io/">redis</a> 之类的in-memory swap模式, 它设计初衷就是用来处理队列远远大于内存能否实际保存的大小. 和传统的企业级Message queue <a href="http://www.rabbitmq.com/">RabbitMQ</a>不同的是, Darner能保证进程挂掉后, 已发布但尚未消费的message不会丢失. 它通过<a href="https://code.google.com/p/leveldb/">Leveldb</a> 间接使用了内核的虚拟内存管理器. 相关话题: Leveledb是一个很赞的项目,由<a href="http://research.google.com/archive/bigtable.html">Bigtable</a>的设计和实现者: <a href="http://research.google.com/people/jeff/">Jeff Dean</a> 和 <a href="http://research.google.com/people/sanjay/">Sanjay Ghemawat</a>两位大牛发起. 因为一次写入操作只涉及一次磁盘append和一次内存写入,所以LevelDb非常适合写操作多于读操作的应用场合,之前做过on ssd的测试, merge+append的写入,对于ssd也很适用, 但就此继续说下去就喧宾夺主了, 在此不做拓展说明.</p>
+
+<p>其结果就是一个持久化的队列server,无论队列大小,往往只使用少量的驻留内存,同时还能兼顾着高性能. 官方有一个公开的<a href="https://github.com/wavii/darner/blob/master/docs/benchmarks.md"> benchmark </a></p>
+
+<p>官方宣称,Darner是近分布式的: 一组队列Server 可以通过一个名称标识去标识; 每个队列都是遵循严格有序的FIFO, 同时一个querying由一组结构松散有序的Darner Server提供. Darner 也支持可靠的双向读取, 如果一个客户端还没来得及处理Message 就已被断开, 那这条未消费的Message将会被转发给下一个客户端(如果这个client是连接状态的), 保证高吞吐量的同时也保证了可靠性.</p>
+
+<p>它用C++实现, 依赖于 <a href="http://www.boost.org/">Boost</a> 和 <a href="https://code.google.com/p/leveldb/">LevelDB</a>. 最初开发用于<a href="http://wavii.com/">wavii</a> (一个基于Facebook 的个性化订阅应用)的生产环境, 后被开源.</p>
+
+<pre><code>git clone git://github.com/wavii/darner.git
+cd darner
+cmake . &amp;&amp; make &amp;&amp; sudo make install
+</code></pre>
+
+<p><strong> 看上去很美, 但还需要找时间实际评测. </strong>
+可能是使用不当吧, 目前用的RabbitMQ 太让人抓狂了.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-05T10:52:00+08:00" pubdate data-updated="true">Sep 5<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
 
 
     <article class="post">
@@ -547,85 +596,6 @@ int main()
 </div>
 	
 		<span class="comments"><a href="/blog/2012/08/30/a-generic-singleton//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/28/simple-password-encrypted-files-w-slash-gnupg/">使用GnuPG 对文件进行对称加密</a></h1>
-	<div class="entry-content">
-		<p>在互联网上发送或共享一些文件文档,我可能希望它是安全的,加过密的,即使被截获,我也不希望出现类似于艳照门的事件,尽管在码农的生活中可能无艳可照&#8230;
-在 Linux 或 OSX, 我可以使用一个 <a href="http://huoxu.me/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi/"> GnuPG </a> 的工具对我想要对外共享的文件进行密码保护.</p>
-
-<pre><code>安装 GnuPG
-使用Gentoo. 
-
-sudo emerge gpg
-
-
-在Mac OSX 下可以使用 Homebrew:
-
-brew install gpg
-</code></pre>
-
-<p>加密一个敏感文件</p>
-
-<pre><code>gpg -c sensitive.txt
-</code></pre>
-
-<p>因为是对称加密, 它会提示:</p>
-
-<pre><code>Enter passphrase:
-Repeat passphrase: 
-</code></pre>
-
-<p>如果成功, 会生成一个sensitive.txt.gpg文件, 当然了, 它的内容是人类不可读的.</p>
-
-<p>你可以随意分发传送这个文件..</p>
-
-<p>接收方只需要对密文件:</p>
-
-<pre><code>gpg sensitive.txt.gpg
-</code></pre>
-
-<p>当然了, 假设对方是知道你的对称密码的.</p>
-
-<pre><code>gpg: CAST5 encrypted data
-Enter passphrase: 
-</code></pre>
-
-<p>输入密码短语后, 它会还原成原文件 sensitive.txt.</p>
-
-<p>Dropbox作为云端文件存储利器, 方便的同时, 可能也会带来安全隐患, 很有必要对你存储的文件做一层加密.</p>
-
-<p>使用基于gpg的Dropbox 加密项目, 基本可以做到无忧.</p>
-
-<p><a href="https://github.com/woodwardjd/lockbox/">https://github.com/woodwardjd/lockbox/</a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-28T13:45:00+08:00" pubdate data-updated="true">Aug 28<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/28/simple-password-encrypted-files-w-slash-gnupg//index.html#disqus_thread">Comments</a></span>
 	
 </div></article>
 
