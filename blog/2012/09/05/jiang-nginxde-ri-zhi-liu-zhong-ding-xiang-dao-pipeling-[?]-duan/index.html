@@ -3,12 +3,11 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>一个很cool的项目: r³ - huoxu.me</title>
+	<title>将Nginx的日志流重定向到Pipe另一端 - huoxu.me</title>
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="r³ 是一个基于python的map reduce 引擎. 后端使用redis, 它的设计理念是:To be simple. 和任意一个MapReduce理论完备的项目[Haoop,Spark,Dpark..etc]一样.
-它也分为: 输入流, mappers 和 reducers, 三个处理步骤 &hellip;">
+	<meta name="description" content="管道是类UNIX系统IPC通信最古老的方式, 长期以来深得程序员信赖, 童叟无欺, 老少咸宜. Nginx日志统一使用scribe 收集方式. 步骤是先tail -f accesslog 通过unix pipe传给scribe buffer, 后者将收集到的日志流发往中心scribe sink. &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -77,130 +76,75 @@
 	<div id="content" class="inner"><div>
 <article class="hentry" role="article">
   
-	<h1 class="title">一个很cool的项目: R³</h1>
-	<div class="entry-content"><p>r³ 是一个基于python的map reduce 引擎. 后端使用redis, 它的设计理念是:To be simple.</p>
+	<h1 class="title">将Nginx的日志流重定向到Pipe另一端</h1>
+	<div class="entry-content"><p>管道是类UNIX系统IPC通信最古老的方式, 长期以来深得程序员信赖, 童叟无欺, 老少咸宜.</p>
 
-<p>和任意一个MapReduce理论完备的项目[Haoop,Spark,Dpark..etc]一样.
-它也分为: 输入流, mappers 和 reducers, 三个处理步骤.</p>
+<p>Nginx日志统一使用scribe 收集方式. 步骤是先tail -f accesslog 通过unix pipe传给scribe buffer, 后者将收集到的日志流发往中心scribe sink.</p>
 
-<p><img src="https://github.com/heynemann/r3" alt="image alt" /></p>
+<p>问题很明显, 1,整条链依赖于tail的稳定性, 前一阵发生过此类事故, 无奈将tail 改为xtail 之后,暂时稳定. 2,nginx 所在机器会写一份, 然后tail给scribe, 日志冗余,无法集中.</p>
 
-<h3>图显示不了了, 原因不明</h3>
+<p>于是开垦荒地. 想到在nginx 进程内直接通过<a href="http://linux.die.net/man/2/pipe">Pipe</a>方式发给scribe.</p>
 
-
-<p>实践验证理论, Let&#8217;s do it.</p>
-
-<p>先简单的通过pip安装:</p>
-
-<pre><code>pip install r3
+<pre><code>#include&lt;unistd.h&gt;
+int pipe(int fd[2]);
 </code></pre>
 
-<p>安装完之后, 会有三个命令:r3-app, r3-map,  r3-web.</p>
+<p>在这里传递的参数fd[2],是两个文件描述符, 其中fd[0]为读的文件描述符,fd[1]为写的文件
+描述符. 在nginx 父进程中声明了一个管道, 然后执行fork()函数创建一个子进程, 该子进程中保留了一个fd[2]的副本.我在子进程中关闭fd[0], 在父进程中关闭fd[1], 这样我从子进程写入信息,就可以从父进程读出来, 就建立了一个在父进程和子进程之间通信的通道.</p>
 
-<p>看一个常见的Mapreduce场景计算: 对文档单词量的统计.</p>
+<p>假设我想要获取nginx 父进程的标准日志输出, 只需要将父进程的标准输出复制给fd[1],这样我们就可以从子进程中获取父进程的输出了.</p>
 
-<p>得有一个存储数据的地方,我先假设你有一个redis实例, 运行在 127.0.0.1:7778</p>
+<p>这里, 使用了linux 标准的<a href="http://linux.die.net/man/2/dup2">dup2</a>函数..</p>
 
-<p>运行:</p>
-
-<pre><code>r3-app --redis-port=7778 --redis-pass=r3 -c config.py
+<pre><code>#include &lt;unistd.h&gt;
+int dup2(int oldfd,int fd);
 </code></pre>
 
-<p>上边运行的config.py, 作为一个接口配置, 它包含了输入和reduce的输出:</p>
+<p>dup2函数规定一个源描述符和目标描述符的id. dup2函数成功返回时,目标描述符(dup2函数的第二个参数)将变成源描述符(dup2函数的第一个参数)的复制品, 类似于两个文件描述符就都指向同一个文件.</p>
 
-<pre><code>INPUT_STREAMS = [
-    'test.count_words_stream.CountWordsStream'
-]
+<p>其实, 我想做的功能, 在淘宝的<a href="http://tengine.taobao.org/">tengine</a> 中已经实现了.</p>
 
-REDUCERS = [
-    'test.count_words_reducer.CountWordsReducer'
-]
+<p>代码:</p>
+
+<pre><code>    if ((pid = fork()) &lt; 0) {
+        goto err;
+    } else if (pid &gt; 0) { // 父
+        op-&gt;pid = pid;
+
+        if (op-&gt;open_fd-&gt;fd != NGX_INVALID_FILE) {
+            if (close(op-&gt;open_fd-&gt;fd) == NGX_FILE_ERROR)                       {                                                      
+                ngx_log_error(NGX_LOG_EMERG, cycle-&gt;log, ngx_errno,
+                              "close \"%s\" failed",
+                              op-&gt;open_fd-&gt;name.data);
+            }
+        } //如果出错, 通过ngx_log_error方式记录
+        //如果是PIPE方式的WRITE, 关闭fd[0]读描述符. 反之,则为nginx标准写,则关闭写描述符.
+        if (op-&gt;type == NGX_PIPE_WRITE) {
+            op-&gt;open_fd-&gt;fd = op-&gt;pfd[1];
+            close(op-&gt;pfd[0]);
+        } else {
+            op-&gt;open_fd-&gt;fd = op-&gt;pfd[0];
+            close(op-&gt;pfd[1]);
+        }
+    } else {  // 子进程
+        // 这里使用linux dup2标准调用,实现将父进程的输出(也就是子进程的fd[0])复制给STDIN.
+        if (op-&gt;type == 1) {
+            close(op-&gt;pfd[1]);
+            if (op-&gt;pfd[0] != STDIN_FILENO) {
+                dup2(op-&gt;pfd[0], STDIN_FILENO);
+                close(op-&gt;pfd[0]);
+            }
+        } else {
+            close(op-&gt;pfd[0]);
+            if (op-&gt;pfd[1] != STDOUT_FILENO) {
+                dup2(op-&gt;pfd[1], STDOUT_FILENO);
+                close(op-&gt;pfd[1]);
+            }
+        }
+    }
 </code></pre>
 
-<p>Ok, 首先接触Input Stream.</p>
-
-<p>一个典型的输入流场景,对文档样本进行计数的话,首先应该打开输入流处理器类的文件,读取文件中的行,然后返回的每一行给r3-app.</p>
-
-<p><strong>input stream</strong></p>
-
-<p>它可能是这样的:</p>
-
-<pre><code>from os.path import abspath, dirname, join
-
-class CountWordsStream:
-    job_type = 'count-words'
-    group_size = 1000
-
-    def process(self, app, arguments):
-        with open(abspath(join(dirname(__file__), 'chekhov.txt'))) as f:
-            contents = f.readlines()
-
-        return [line.lower() for line in contents]
-</code></pre>
-
-<p>指定一个job的类型: job_type = &#8216;count-words&#8217;
-group_size = 1000,指定了一个输入流的大小.. 比如:1000, 那每个mapper分配到的处理大小就是1000行, 每1000行, 当做一次Input Stream做一次map.</p>
-
-<p><strong>Running Mappers</strong></p>
-
-<p>使用一个CountWordsMapper类来运行我们的映射.</p>
-
-<pre><code>r3-map --redis-port=7778 --redis-pass=r3 --mapper-key=mapper-1 --mapper-class="test.count_words_mapper.CountWordsMapper"
-</code></pre>
-
-<p>它继承自r3 worker的Mapper类.</p>
-
-<pre><code>from r3.worker.mapper import Mapper
-
-class CountWordsMapper(Mapper):
-    job_type = 'count-words'
-
-    def map(self, lines):
-        return list(self.split_words(lines))
-
-    def split_words(self, lines):
-        for line in lines:
-            for word in line.split():
-                yield word, 1
-</code></pre>
-
-<p><strong>Reducing</strong></p>
-
-<p>在所有Input Stream都已经被Mapper合并处理后.. 这是一个连续的过程.. 我猜想, 应该和Dpark 类似, 也是lazy的. 需要数据时才会真正计算.</p>
-
-<p>那么, Reduce 应该这样写了:</p>
-
-<pre><code>from collections import defaultdict
-
-class CountWordsReducer:
-    job_type = 'count-words'
-
-    def reduce(self, app, items):
-        word_freq = defaultdict(int)
-        for line in items:
-            for word, frequency in line:
-                word_freq[word] += frequency
-
-        return word_freq
-</code></pre>
-
-<p>必须得指定job_type, 这可是reduce和map的血脉关系所在.. = =</p>
-
-<p><strong>测试</strong></p>
-
-<p>我们已经有一个R3应用程序运行在<a href="http://localhost:8888/count-words">http://localhost:8888</a>.</p>
-
-<p>通过<a href="http://localhost:8888/count-words">http://localhost:8888/count-words</a> 访问我们刚刚的文档统计job.</p>
-
-<p><strong>r³ 基于web的监控台 </strong></p>
-
-<p><img src="https://github.com/heynemann/r3/raw/master/r3-web-4.jpg" alt="image alt" /></p>
-
-<p><strong>状态</strong></p>
-
-<p><img src="https://github.com/heynemann/r3/raw/master/r3-web-3.jpg" alt="image alt" /></p>
-
-<p>项目地址: <code>[https://github.com/heynemann/r3][6]</code></p>
+<p>具体实现很简洁, 于是我做成patch形式, 打入现版本的Nginx, 测试大约半个月了, 没出现过问题.</p>
 </div>
 
 
@@ -217,12 +161,12 @@ class CountWordsReducer:
   
 
 
-<time datetime="2012-07-27T18:28:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time></div>
+<time datetime="2012-09-05T15:19:00+08:00" pubdate data-updated="true">Sep 5<span>th</span>, 2012</time></div>
 	<div class="tags">
 
 </div>
 	
-		<span class="comments"><a href="/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/#disqus_thread">Comments</a></span>
 	
 </div>
   <footer>
@@ -244,7 +188,7 @@ class CountWordsReducer:
   
 
 
-<time datetime="2012-07-27T18:28:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time>
+<time datetime="2012-09-05T15:19:00+08:00" pubdate data-updated="true">Sep 5<span>th</span>, 2012</time>
       
 
 
@@ -257,7 +201,7 @@ class CountWordsReducer:
   <div class="addthis_toolbox addthis_default_style ">
   
      
-        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/" >Tweet</a>
+        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/" >Tweet</a>
      
      
      
@@ -267,10 +211,8 @@ class CountWordsReducer:
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2012/07/27/git-tricks-stash/" title="Previous Post: Git tricks: stash">&laquo; Git tricks: stash</a>
+        <a class="basic-alignment left" href="/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/" title="Previous Post: 又一个简单轻量级的任务队列">&laquo; 又一个简单轻量级的任务队列</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2012/08/08/%5B%3F%5D-ge-shuai-qi-de-bresenhams-suan-fa-shi-xian/" title="Next Post: 一个高效的Bresenham's 算法实现">一个高效的Bresenham's 算法实现 &raquo;</a>
       
     </p>
   </footer>
@@ -370,8 +312,8 @@ class CountWordsReducer:
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/';
-        var disqus_url = 'http://xuanhan863.github.com/blog/2012/07/27/%5B%3F%5D-ge-hen-coolde-xiang-mu-r3/';
+        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/';
+        var disqus_url = 'http://xuanhan863.github.com/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/';
         var disqus_script = 'embed.js';
       
     (function () {

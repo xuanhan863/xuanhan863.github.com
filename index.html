@@ -7,8 +7,7 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="后摩尔定律时代,分布式处理逐渐成为主流,Message queue作为服务器之间异步通信的标配, 开源项目自然层出不穷. Darnero 文档介绍
-Darner 是一非常简单的消息队列服务器. 它不像Redis 之类的in-memory swap模式, &hellip;">
+	<meta name="description" content="管道是类UNIX系统IPC通信最古老的方式, 长期以来深得程序员信赖, 童叟无欺, 老少咸宜. Nginx日志统一使用scribe 收集方式. 步骤是先tail -f accesslog 通过unix pipe传给scribe buffer, 后者将收集到的日志流发往中心scribe sink &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -75,6 +74,106 @@ Darner 是一非常简单的消息队列服务器. 它不像Redis 之类的in-me
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/">将Nginx的日志流重定向到Pipe另一端</a></h1>
+	<div class="entry-content">
+		<p>管道是类UNIX系统IPC通信最古老的方式, 长期以来深得程序员信赖, 童叟无欺, 老少咸宜.</p>
+
+<p>Nginx日志统一使用scribe 收集方式. 步骤是先tail -f accesslog 通过unix pipe传给scribe buffer, 后者将收集到的日志流发往中心scribe sink.</p>
+
+<p>问题很明显, 1,整条链依赖于tail的稳定性, 前一阵发生过此类事故, 无奈将tail 改为xtail 之后,暂时稳定. 2,nginx 所在机器会写一份, 然后tail给scribe, 日志冗余,无法集中.</p>
+
+<p>于是开垦荒地. 想到在nginx 进程内直接通过<a href="http://linux.die.net/man/2/pipe">Pipe</a>方式发给scribe.</p>
+
+<pre><code>#include&lt;unistd.h&gt;
+int pipe(int fd[2]);
+</code></pre>
+
+<p>在这里传递的参数fd[2],是两个文件描述符, 其中fd[0]为读的文件描述符,fd[1]为写的文件
+描述符. 在nginx 父进程中声明了一个管道, 然后执行fork()函数创建一个子进程, 该子进程中保留了一个fd[2]的副本.我在子进程中关闭fd[0], 在父进程中关闭fd[1], 这样我从子进程写入信息,就可以从父进程读出来, 就建立了一个在父进程和子进程之间通信的通道.</p>
+
+<p>假设我想要获取nginx 父进程的标准日志输出, 只需要将父进程的标准输出复制给fd[1],这样我们就可以从子进程中获取父进程的输出了.</p>
+
+<p>这里, 使用了linux 标准的<a href="http://linux.die.net/man/2/dup2">dup2</a>函数..</p>
+
+<pre><code>#include &lt;unistd.h&gt;
+int dup2(int oldfd,int fd);
+</code></pre>
+
+<p>dup2函数规定一个源描述符和目标描述符的id. dup2函数成功返回时,目标描述符(dup2函数的第二个参数)将变成源描述符(dup2函数的第一个参数)的复制品, 类似于两个文件描述符就都指向同一个文件.</p>
+
+<p>其实, 我想做的功能, 在淘宝的<a href="http://tengine.taobao.org/">tengine</a> 中已经实现了.</p>
+
+<p>代码:</p>
+
+<pre><code>    if ((pid = fork()) &lt; 0) {
+        goto err;
+    } else if (pid &gt; 0) { // 父
+        op-&gt;pid = pid;
+
+        if (op-&gt;open_fd-&gt;fd != NGX_INVALID_FILE) {
+            if (close(op-&gt;open_fd-&gt;fd) == NGX_FILE_ERROR)                       {                                                      
+                ngx_log_error(NGX_LOG_EMERG, cycle-&gt;log, ngx_errno,
+                              "close \"%s\" failed",
+                              op-&gt;open_fd-&gt;name.data);
+            }
+        } //如果出错, 通过ngx_log_error方式记录
+        //如果是PIPE方式的WRITE, 关闭fd[0]读描述符. 反之,则为nginx标准写,则关闭写描述符.
+        if (op-&gt;type == NGX_PIPE_WRITE) {
+            op-&gt;open_fd-&gt;fd = op-&gt;pfd[1];
+            close(op-&gt;pfd[0]);
+        } else {
+            op-&gt;open_fd-&gt;fd = op-&gt;pfd[0];
+            close(op-&gt;pfd[1]);
+        }
+    } else {  // 子进程
+        // 这里使用linux dup2标准调用,实现将父进程的输出(也就是子进程的fd[0])复制给STDIN.
+        if (op-&gt;type == 1) {
+            close(op-&gt;pfd[1]);
+            if (op-&gt;pfd[0] != STDIN_FILENO) {
+                dup2(op-&gt;pfd[0], STDIN_FILENO);
+                close(op-&gt;pfd[0]);
+            }
+        } else {
+            close(op-&gt;pfd[0]);
+            if (op-&gt;pfd[1] != STDOUT_FILENO) {
+                dup2(op-&gt;pfd[1], STDOUT_FILENO);
+                close(op-&gt;pfd[1]);
+            }
+        }
+    }
+</code></pre>
+
+<p>具体实现很简洁, 于是我做成patch形式, 打入现版本的Nginx, 测试大约半个月了, 没出现过问题.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-05T15:19:00+08:00" pubdate data-updated="true">Sep 5<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan//index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
 
 
     <article class="post">
@@ -430,176 +529,6 @@ $ make install # as root, probably
 </div>
 	
 		<span class="comments"><a href="/blog/2012/08/31/a-git-launcher//index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/30/a-generic-singleton/">一个通用的C++ 单例模型</a></h1>
-	<div class="entry-content">
-		<p>昨天,我发现一个问题,这是一年前未能解决的方案.这个问题很简单:创建一个通用的单例对象模型.对单例模型的定义是: &#8220;确保一个类只有一个实例,并提供一个全局访问点&#8221;.</p>
-
-<p>常见的版本是使用模板模式（CRTP）.先介绍CRTP,这个概念很简单,只是继承了一个模板基类,它允许创建静态多态性或者实例计数器&#8230; 可以参考维基百科对此的定义 <a href="http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously recurring template pattern</a></p>
-
-<p>使用CRTP的方式, 每次程序结束时, 我都需要显示调用一次 destroySingleton.
-所以,我必须设计一个通用的解决方案,围绕整个对象生命周期, 从对象构造到它调用结束被析构.</p>
-
-<p>最初,我使用两个阶级,两个构造函数,我虽然打的事实,不使用模板函数的实例,可以容忍不正确（没有类型检查，没有名字结合&#8230;这必须是有效的语法）。下面是一个例子：</p>
-
-<pre><code>#include &lt;string&gt;
-
-template &lt;class T&gt;
-class Singleton
-{
-public:
-  static T* get_instance(int v)
-  {
-    if (!instance_)
-      instance_ = new T(v);
-
-    return instance_;
-  }
-
-  static T* get_instance(std::string s)
-  {
-    if (!instance_)
-      instance_ = new T(s);
-
-    return instance_;
-  } // Sounds familiar...
-
-  static void destroy_instance()
-  {
-    delete instance_;
-    instance_ = nullptr;
-  }
-
-private:
-  static T* instance_;
-};
-
-template &lt;class T&gt; T* Singleton&lt;T&gt;::instance_ = nullptr;
-
-// The classes that will be singletons:
-
-class Single: public Singleton&lt;Single&gt;
-{
-public:
-  Single(std::string s): s_(s) {}
-
-private:
-  std::string s_;
-};
-
-class Map: public Singleton&lt;Map&gt;
-{
-public:
-  Map(int scale): scale_(scale) {}
-
-private:
-  int scale_;
-};
-
-// How to create and destroy them:
-
-int main()
-{
-  Single* s = Single::get_instance("Forever Alone");
-  Map* m = Map::get_instance(42);
-
-  // Use these singletons.
-
-  Map::destroy_instance();
-  Single::destroy_instance();
-}
-</code></pre>
-
-<p>这个版本实现了通用单例的一半,它完全非侵入式的转化为单例类.</p>
-
-<p>事实上,必须建立两个GET_INSTANCE,因为它有两个不同的构造函数.由于可能对象构造函数的参数组合的数量是无限的,所以这个解决方案并不好.</p>
-
-<p>昨天,研究了一下<a href="http://enki-tech.blogspot.fr/2012/08/c11-vector-improved-how-it-works.html"> C++ 11</a>机制, 发现它允许创建emplace_back. 其实,我们只需要创建一个GET_INSTANCE,作为参数传给构造函数.不重复,完全通用的,这就是我想要的.
-下面是Singleton类的最终版本:</p>
-
-<pre><code>#include &lt;iostream&gt;
-
-template &lt;class T&gt;
-class Singleton
-{
-public:
-  template &lt;typename... Args&gt;
-  static
-  T* get_instance(Args... args)
-  {
-    if (!instance_)
-      {
-        instance_ = new T(std::forward&lt;Args&gt;(args)...);
-      }
-
-    return instance_;
-  }
-
-  static
-  void destroy_instance()
-  {
-    delete instance_;
-    instance_ = nullptr;
-  }
-
-private:
-  static T* instance_;
-};
-
-template &lt;class T&gt; T*  Singleton&lt;T&gt;::instance_ = nullptr;
-
-class Map: public Singleton&lt;Map&gt;
-{
-  friend class Singleton&lt;Map&gt;;
-private:
-  Map(int size_x, int size_y): size_x_{size_x}, size_y_{size_y} {}
-
-public:
-  int size_x_;
-  int size_y_;
-};
-
-int main()
-{
-  Map* m = Map::get_instance(4, 5);
-
-  std::cout &lt;&lt; m-&gt;size_y_ &lt;&lt; std::endl; // Outputs 5.
-
-  Map::destroy_instance();
-}
-</code></pre>
-
-<p>简单翻译, 原文出处: <a href="http://enki-tech.blogspot.fr/2012/08/c11-generic-singleton.html">C++11: A generic Singleton</a>
-自备翻墙.</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-30T17:29:00+08:00" pubdate data-updated="true">Aug 30<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/30/a-generic-singleton//index.html#disqus_thread">Comments</a></span>
 	
 </div></article>
 

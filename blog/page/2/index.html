@@ -7,9 +7,7 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="在互联网上发送或共享一些文件文档,我可能希望它是安全的,加过密的,即使被截获,我也不希望出现类似于艳照门的事件,尽管在码农的生活中可能无艳可照&#8230;
-在 Linux 或 OSX, 我可以使用一个 GnuPG 的工具对我想要对外共享的文件进行密码保护. 安装 GnuPG
-使用Gentoo &hellip;">
+	<meta name="description" content="昨天,我发现一个问题,这是一年前未能解决的方案.这个问题很简单:创建一个通用的单例对象模型.对单例模型的定义是: &#8220;确保一个类只有一个实例,并提供一个全局访问点&#8221;. 常见的版本是使用模板模式（CRTP）.先介绍CRTP,这个概念很简单,只是继承了一个模板基类, &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -76,6 +74,176 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/08/30/a-generic-singleton/">一个通用的C++ 单例模型</a></h1>
+	<div class="entry-content">
+		<p>昨天,我发现一个问题,这是一年前未能解决的方案.这个问题很简单:创建一个通用的单例对象模型.对单例模型的定义是: &#8220;确保一个类只有一个实例,并提供一个全局访问点&#8221;.</p>
+
+<p>常见的版本是使用模板模式（CRTP）.先介绍CRTP,这个概念很简单,只是继承了一个模板基类,它允许创建静态多态性或者实例计数器&#8230; 可以参考维基百科对此的定义 <a href="http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously recurring template pattern</a></p>
+
+<p>使用CRTP的方式, 每次程序结束时, 我都需要显示调用一次 destroySingleton.
+所以,我必须设计一个通用的解决方案,围绕整个对象生命周期, 从对象构造到它调用结束被析构.</p>
+
+<p>最初,我使用两个阶级,两个构造函数,我虽然打的事实,不使用模板函数的实例,可以容忍不正确（没有类型检查，没有名字结合&#8230;这必须是有效的语法）。下面是一个例子：</p>
+
+<pre><code>#include &lt;string&gt;
+
+template &lt;class T&gt;
+class Singleton
+{
+public:
+  static T* get_instance(int v)
+  {
+    if (!instance_)
+      instance_ = new T(v);
+
+    return instance_;
+  }
+
+  static T* get_instance(std::string s)
+  {
+    if (!instance_)
+      instance_ = new T(s);
+
+    return instance_;
+  } // Sounds familiar...
+
+  static void destroy_instance()
+  {
+    delete instance_;
+    instance_ = nullptr;
+  }
+
+private:
+  static T* instance_;
+};
+
+template &lt;class T&gt; T* Singleton&lt;T&gt;::instance_ = nullptr;
+
+// The classes that will be singletons:
+
+class Single: public Singleton&lt;Single&gt;
+{
+public:
+  Single(std::string s): s_(s) {}
+
+private:
+  std::string s_;
+};
+
+class Map: public Singleton&lt;Map&gt;
+{
+public:
+  Map(int scale): scale_(scale) {}
+
+private:
+  int scale_;
+};
+
+// How to create and destroy them:
+
+int main()
+{
+  Single* s = Single::get_instance("Forever Alone");
+  Map* m = Map::get_instance(42);
+
+  // Use these singletons.
+
+  Map::destroy_instance();
+  Single::destroy_instance();
+}
+</code></pre>
+
+<p>这个版本实现了通用单例的一半,它完全非侵入式的转化为单例类.</p>
+
+<p>事实上,必须建立两个GET_INSTANCE,因为它有两个不同的构造函数.由于可能对象构造函数的参数组合的数量是无限的,所以这个解决方案并不好.</p>
+
+<p>昨天,研究了一下<a href="http://enki-tech.blogspot.fr/2012/08/c11-vector-improved-how-it-works.html"> C++ 11</a>机制, 发现它允许创建emplace_back. 其实,我们只需要创建一个GET_INSTANCE,作为参数传给构造函数.不重复,完全通用的,这就是我想要的.
+下面是Singleton类的最终版本:</p>
+
+<pre><code>#include &lt;iostream&gt;
+
+template &lt;class T&gt;
+class Singleton
+{
+public:
+  template &lt;typename... Args&gt;
+  static
+  T* get_instance(Args... args)
+  {
+    if (!instance_)
+      {
+        instance_ = new T(std::forward&lt;Args&gt;(args)...);
+      }
+
+    return instance_;
+  }
+
+  static
+  void destroy_instance()
+  {
+    delete instance_;
+    instance_ = nullptr;
+  }
+
+private:
+  static T* instance_;
+};
+
+template &lt;class T&gt; T*  Singleton&lt;T&gt;::instance_ = nullptr;
+
+class Map: public Singleton&lt;Map&gt;
+{
+  friend class Singleton&lt;Map&gt;;
+private:
+  Map(int size_x, int size_y): size_x_{size_x}, size_y_{size_y} {}
+
+public:
+  int size_x_;
+  int size_y_;
+};
+
+int main()
+{
+  Map* m = Map::get_instance(4, 5);
+
+  std::cout &lt;&lt; m-&gt;size_y_ &lt;&lt; std::endl; // Outputs 5.
+
+  Map::destroy_instance();
+}
+</code></pre>
+
+<p>简单翻译, 原文出处: <a href="http://enki-tech.blogspot.fr/2012/08/c11-generic-singleton.html">C++11: A generic Singleton</a>
+自备翻墙.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-30T17:29:00+08:00" pubdate data-updated="true">Aug 30<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/30/a-generic-singleton//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
 
 
     <article class="post">
@@ -392,207 +560,6 @@ def encrypt_line(line):
 </div>
 	
 		<span class="comments"><a href="/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi//blog/page/2/index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/10/llvm-bitcode-into-python-dot/">LLVM Bitcode Into Python..</a></h1>
-	<div class="entry-content">
-		<p>传统的Python程序员屌丝,可能会使用ctypes直接调用由C编译出来的函数,所谓的调用c的动态链接库.好处是接口简洁,兼容绝大部分的C类型数据结构..收益也很明显,大多都是为了解决性能上的问题.</p>
-
-<pre><code>import ctypes;
-h = ctypes.CDLL('**.so')
-</code></pre>
-
-<p>再说说LLVM (Low Level Virtual Machine) 一个低级别的虚拟机.. 但和JVM等等传统意义上的虚拟机不一样的是, LLVM能够在编译期优化、链接优化、甚至在线编译优化.</p>
-
-<p>LLVM严格说来是一个编译器架构体系. 怎么说呢? 编译器的开发者仅需开发一个可以把原始码转换成LLVM的bitcode的格式(frontend),而转换至机器语言的部分则由另一批开发人员开发(backend). 这样做的好处是使得程序语言可以很轻松的跨越各种平台(LLVM在各个平台所使用的bitcode是一样的).</p>
-
-<p>然后, 我想介绍的是这么一个东东: <a href="https://github.com/dabeaz/bitey">Bitey </a></p>
-
-<p>它可以把以上提到的两个概念衔接到一起&#8230; 它可以将LLVM的bitcode直接导入到Python中作为一个扩展模块.</p>
-
-<p>开始前提是, 你开启了configure &#8211;enable-shared=yes编译选项. 和安装了<a href="http://www.llvmpy.org">link text</a>llvm-py python for llvm扩展.</p>
-
-<p><strong>Ok, 首先, 我写了一个很简单C版本的伪随机数生成器.</strong></p>
-
-<pre><code>//srands.c
-#include &lt;stdio.h&gt;                                   
-#include &lt;time.h&gt;
-
-int srandom()
-{
-    int random;
-    srand( (unsigned)time( NULL ) );
-    random = rand();
-    return random;
-}
-</code></pre>
-
-<p>然后, 我通过clang 把它编译成LLVM bitcode:</p>
-
-<pre><code>bash % clang -emit-llvm -c srands.c
-</code></pre>
-
-<p>这将会生成一个srands.o文件,它包含了LLVM bitcode. 现在,只需把它导入到Python:</p>
-
-<pre><code>&gt;&gt;&gt; import bitey
-&gt;&gt;&gt; import srands
-&gt;&gt;&gt; srands.srandom()
-5788877353
-&gt;&gt;&gt;
-</code></pre>
-
-<p>没错,就是这样.bitey不使用C编译器,连接器,或动态装载器. 你不需要写包装函数,只需要正常的实现一个C程序,然后,编译,导入和完成.</p>
-
-<p>bitey兼容大多数C数据类型,包括整数,浮点数,void,指针,数组和结构体.事实上因为它复用了ctypes的基础接口.</p>
-
-<p>下面是一个稍微复杂一点的结构体数据类型的交互:</p>
-
-<pre><code>/* point.c */
-#include &lt;math.h&gt;
-
-struct Point {
-    double x;
-    double y;
-};
-
-double distance(struct Point *p1, struct Point *p2) {
-    return sqrt((p1-&gt;x - p2-&gt;x)*(p1-&gt;x - p2-&gt;x) +
-                (p1-&gt;y - p2-&gt;y)*(p1-&gt;y - p2-&gt;y));
-}
-</code></pre>
-
-<p>And then 运行:</p>
-
-<pre><code>% clang -emit-llvm -c point.c
-% python
-&gt;&gt;&gt; import bitey
-&gt;&gt;&gt; import point
-&gt;&gt;&gt; p1 = point.Point(3,4)
-&gt;&gt;&gt; p2 = point.Point(6,8)
-&gt;&gt;&gt; point.distance(p1,p2)
-5.0
-&gt;&gt;&gt;
-</code></pre>
-
-<p>需要说明的是,LLVM的bitcode不编码结构域的名称.因此,Bitey需将它们分配给这样的索引元素变量:</p>
-
-<pre><code>&gt;&gt;&gt; p1.e0         # (Returns the .x component)
-3
-&gt;&gt;&gt; p1.e1         # (Returns the .y component)
-4
-</code></pre>
-
-<p>也可以使用LLVM &#8220;高级主题&#8221;中所说的预加载模块, 让你瞬间变身高富帅..</p>
-
-<p>如果需要把两个LLVM的目标文件一起合并成一个单一的导入模块,使用llvm-ld命令:</p>
-
-<pre><code>% llvm-ld point.o srands.o -b combined.o
-% python
-&gt;&gt;&gt; import bitey
-&gt;&gt;&gt; import combined
-&gt;&gt;&gt; combined.srandom()
-5345345646
-&gt;&gt;&gt; p1 = combined.Point(3,4)
-&gt;&gt;&gt; p2 = combined.Point(6,8)
-&gt;&gt;&gt; combined.distance(p1,p2)
-5.0
-&gt;&gt;&gt;
-</code></pre>
-
-<p>很多时候,我们写的C代码需要链接外部库.于是在导入之前可以采取特殊的方法来加载库.
-比如:</p>
-
-<pre><code># OS-X
-% gcc -bundle -export_dynamic srands.c -o libsrands.so
-
-# Linux
-% gcc -shared srands.c -o libsrands.so
-</code></pre>
-
-<p>现在,假设有一些C代码要访问这个库:</p>
-
-<pre><code>/* sample.c */
-#include &lt;stdio.h&gt;
-extern int srandom();
-
-void print_srandom() {
-    int n = 5;
-    // 随机数生成,打印5次.
-    while (n -- &gt;= 0) {
-        printf("%d\n", srandom());
-    }
-}
-</code></pre>
-
-<p>你很希望它能正常执行, 但不幸的是, 它报错了&#8230;</p>
-
-<pre><code>% clang -emit-llvm -c sample.c
-% python
-&gt;&gt;&gt; import bitey
-&gt;&gt;&gt; import sample
-LLVM ERROR: Program used external function 'srandom' which could not be resolved!
-%
-</code></pre>
-
-<p>不怕不怕&#8230; 问题可以这样解决:</p>
-
-<pre><code> % python
- &gt;&gt;&gt; import bitey
- &gt;&gt;&gt; bitey.load_library("./libsrands.so")
-&lt;CDLL './libsrands.so', handle 13203afc60 at 10179d190&gt;
- &gt;&gt;&gt; import sample
- &gt;&gt;&gt; sample.print_srandom()
- 354534534
- 65645434
- 5454535
- 546456546645
- 45345345
- &gt;&gt;&gt;
-</code></pre>
-
-<p>需要说明的是,Bitey不使用C编译器,连接器,动态加载程序,或者涉及子进程调用.它是完全独立的,粘合了llvm-py和ctypes的功能.</p>
-
-<p>自动绑定</p>
-
-<p>在以上例子中,它使用import bitey的方式来识别和加载模块.如果你想跳过这一步,让一切自动,可以创建一个bitey.pth文件,它包含了下面的声明:</p>
-
-<pre><code>#bitey.pth
-import bitey
-</code></pre>
-
-<p>现在,只需要把这个文件复制到Python的site-packages目录下.</p>
-
-<p>That&#8217;s all..  : )</p>
-
-<p>参考: <a href="https://github.com/dabeaz/bitey"> bitey on github </a></p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-10T14:46:00+08:00" pubdate data-updated="true">Aug 10<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/10/llvm-bitcode-into-python-dot//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div></article>
 
