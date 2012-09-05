@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-09-05T13:06:07+08:00</updated>
+  <updated>2012-09-05T14:41:58+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -18,9 +18,10 @@
     <link href="http://xuanhan863.github.com/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/"/>
     <updated>2012-09-05T10:52:00+08:00</updated>
     <id>http://xuanhan863.github.com/blog/2012/09/05/[?]-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie</id>
-    <content type="html"><![CDATA[<p>Message queue作为服务器之间异步通信的标配, 自然不容忽视.</p>
+    <content type="html"><![CDATA[<p>后摩尔定律时代,分布式处理逐渐成为主流,Message queue作为服务器之间异步通信的标配, 开源项目自然层出不穷.</p>
 
-<p><a href="https://github.com/wavii/darner">Darner</a> 是一非常简单的消息队列服务器. 它不像<a href="http://redis.io/">Redis</a> 之类的in-memory swap模式, 它设计初衷就是用来处理队列远远大于内存能否实际保存的大小. 和传统的企业级Message queue <a href="http://www.rabbitmq.com/">RabbitMQ</a>不同的是, Darner能保证进程挂掉后, 已发布但尚未消费的message不会丢失. 它通过<a href="https://code.google.com/p/leveldb/">Leveldb</a> 间接使用了内核的虚拟内存管理器.</p>
+<p>Darnero 文档介绍
+<a href="https://github.com/wavii/darner">Darner</a> 是一非常简单的消息队列服务器. 它不像<a href="http://redis.io/">Redis</a> 之类的in-memory swap模式, 它设计初衷就是用来处理队列远远大于内存能否实际保存的大小. 和传统的企业级Message queue <a href="http://www.rabbitmq.com/">RabbitMQ</a>不同的是, Darner能保证进程挂掉后, 已发布但尚未消费的message不会丢失. 它通过<a href="https://code.google.com/p/leveldb/">Leveldb</a> 间接使用了内核的虚拟内存管理器.</p>
 
 <p>相关话题: Leveledb是一个很赞的项目,由<a href="http://research.google.com/archive/bigtable.html">Bigtable</a>的设计和实现者: <a href="http://research.google.com/people/jeff/">Jeff Dean</a> 和 <a href="http://research.google.com/people/sanjay/">Sanjay Ghemawat</a>两位大牛发起. 因为一次写入操作只涉及一次磁盘append和一次内存写入,所以LevelDb非常适合写操作多于读操作的应用场合,之前做过on ssd的测试, merge+append的写入,对于ssd也很适用, 但就此继续说下去就喧宾夺主了, 在此不做拓展说明.</p>
 
