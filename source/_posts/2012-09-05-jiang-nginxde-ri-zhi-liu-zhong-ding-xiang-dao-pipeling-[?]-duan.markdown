@@ -8,9 +8,11 @@ categories:
 
 管道是类UNIX系统IPC通信最古老的方式, 长期以来深得程序员信赖, 童叟无欺, 老少咸宜.
 
-Nginx日志统一使用scribe 收集方式. 步骤是先tail -f accesslog 通过unix pipe传给scribe buffer, 后者将收集到的日志流发往中心scribe sink. 
+目前我厂的Nginx日志统一使用scribe 收集方式. 步骤是先tail -f accesslog 通过unix pipe传给scribe buffer, 后者将收集到的日志流发往中心scribe sink. 
 
-问题很明显, 1,整条链依赖于tail的稳定性, 前一阵发生过此类事故, 无奈将tail 改为xtail 之后,暂时稳定. 2,nginx 所在机器会写一份, 然后tail给scribe, 日志冗余,无法集中.
+但问题很明显:
+1,整条链依赖于tail的稳定性, 前一阵发生过此类事故, 无奈将tail 改为xtail 之后,暂时稳定. 
+2,nginx 所在机器会写一份, 然后tail给scribe, 日志冗余,无法集中.
 
 于是开垦荒地. 想到在nginx 进程内直接通过<a href="http://linux.die.net/man/2/pipe">Pipe</a>方式发给scribe. 
 
@@ -74,5 +76,23 @@ dup2函数规定一个源描述符和目标描述符的id. dup2函数成功返�
 
 
 
-具体实现很简洁, 于是我做成patch形式, 打入现版本的Nginx, 测试大约半个月了, 没出现过问题. 
+具体实现很简洁, 于是我做成patch形式, 打入现版本的Nginx, 测试大约半个月了, 很稳定...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
