@@ -7,7 +7,9 @@
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="昨天,我发现一个问题,这是一年前未能解决的方案.这个问题很简单:创建一个通用的单例对象模型.对单例模型的定义是: &#8220;确保一个类只有一个实例,并提供一个全局访问点&#8221;. 常见的版本是使用模板模式（CRTP）.先介绍CRTP,这个概念很简单,只是继承了一个模板基类, &hellip;">
+	<meta name="description" content="a git launcher : ) 当你输错后, 有一个ASCII码的terminal动画效果. 之后, 它会把你的意思正确执行. 只有一个C 文件的实现, 只针对git命令. $ git clone https://github.com/rwos/gti.git
+$ make
+$ make &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -74,6 +76,52 @@
 		
 	
 	<div id="content" class="inner">
+
+
+    <article class="post">
+	<h1 class="title"><a href="/blog/2012/08/31/a-git-launcher/">A Git Launcher</a></h1>
+	<div class="entry-content">
+		<p>a git launcher : )</p>
+
+<p>当你输错后, 有一个ASCII码的terminal动画效果. 之后, 它会把你的意思正确执行.</p>
+
+<p><img src="http://r-wos.org/media/gti-animation"></img></p>
+
+<p>只有一个C 文件的实现, 只针对git命令.</p>
+
+<pre><code>$ git clone https://github.com/rwos/gti.git
+$ make
+$ make install # as root, probably
+</code></pre>
+
+<p><strong>参考: <a href="http://r-wos.org/hacks/gti">http://r-wos.org/hacks/gti</a></strong></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-31T12:26:00+08:00" pubdate data-updated="true">Aug 31<span>st</span>, 2012</time></div>
+	<div class="tags">
+
+</div>
+	
+		<span class="comments"><a href="/blog/2012/08/31/a-git-launcher//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
+</div></article>
 
 
     <article class="post">
@@ -496,70 +544,6 @@ $ git branches
 </div>
 	
 		<span class="comments"><a href="/blog/2012/08/23/le-dot-git-for-humans//blog/page/2/index.html#disqus_thread">Comments</a></span>
-	
-</div></article>
-
-
-    <article class="post">
-	<h1 class="title"><a href="/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi/">使用Gnupg 对日志加密</a></h1>
-	<div class="entry-content">
-		<p><strong>关于加密:</strong></p>
-
-<p>理论上你不应该为你的信息在储存和传送过程中的安全而担心. 然国内局域网环境恶劣,众所周知.何况还有伟大的GFW..</p>
-
-<p><em>现代密码学的发展使得普通人也可以使用加密技术</em>  比如<a href="http://www.gnupg.org/">GnuPG</a> 就可以帮你在数据传输过程中签名和加密,而且是跨平台的.</p>
-
-<p><a href="http://www.gnupg.org/">GnuPG</a> 采用 RSA 体系,这是一种非对称的加密方式.过程是:先生成一对密钥,私钥自己保存,而公钥可以公开到任意场景.数据发送方使用公钥加密的内容,只有你可以用私钥解开;你自己用私钥加密的内容,只有用你的公钥可以解开.so,你只需要公开你的公钥,对方就可以用你的公钥给你发送数据,这数据只有你可以解开;如果双方交换了各自的公钥,就可以实现双方相互之间的加密通讯了.</p>
-
-<p><strong>使用:</strong></p>
-
-<p>背景: 某项目的log数据, 机密且敏感.</p>
-
-<p>于是设计使用gnupg 为之传输加密.</p>
-
-<p>使用<a href="http://code.google.com/p/python-gnupg/" >python-gnupg</a> .</p>
-
-<p>使用很简单:</p>
-
-<pre><code>import gnupg
-def encrypt_line(line):
-    gpg = gnupg.GPG(gnupghome=GPG_HOME)
-    encrypted_data = gpg.encrypt(line, '***@')
-    encrypted_string = str(encrypted_data)
-    print 'ok: ', encrypted_data.ok
-    return encrypted_string
-</code></pre>
-
-<p>具体做法是, 使用具体机器名和邮箱作为sign, 生成一对公私钥. 私钥单独一台服务器保存..</p>
-
-<p>python logging在代码里收集支付信息, 通过使用公钥加密, 丢给<a href="http://en.wikipedia.org/wiki/Syslog">syslog</a>, 转发至具体的日志server.</p>
-
-<p>虽然流程繁琐, 但目前想来, 还算通用.</p>
-
-		
-		
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-16T18:22:00+08:00" pubdate data-updated="true">Aug 16<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-</div>
-	
-		<span class="comments"><a href="/blog/2012/08/16/shi-yong-gnupg-dui-ri-zhi-jia-mi//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div></article>
 

@@ -3,11 +3,12 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>将Nginx的日志流重定向到Pipe另一端 - huoxu.me</title>
+	<title>C++ 11标准的shared_ptr 智能指针 - huoxu.me</title>
 	<meta name="author" content="Tony.lee">
 
 	
-	<meta name="description" content="管道是类UNIX系统IPC通信最古老的方式, 长期以来深得程序员信赖, 童叟无欺, 老少咸宜. 目前我厂的Nginx日志统一使用scribe 收集方式. 步骤是先tail -f accesslog 通过unix pipe传给scribe buffer, 后者将收集到的日志流发往中心scribe &hellip;">
+	<meta name="description" content="shared_ptr是什么? 上规模的C/C++项目,都有一个共同问题 - 内存管理.
+飞来飞去的Point, 谁来申请, 谁来释放, 内存泄露了又该找谁? 于是就有了共享指针的想法,也称为智能指针.shared_ptr 就是其一种实现, 它在一块内存上标记一个所有权,说明自己在用. &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -76,77 +77,41 @@
 	<div id="content" class="inner"><div>
 <article class="hentry" role="article">
   
-	<h1 class="title">将Nginx的日志流重定向到Pipe另一端</h1>
-	<div class="entry-content"><p>管道是类UNIX系统IPC通信最古老的方式, 长期以来深得程序员信赖, 童叟无欺, 老少咸宜.</p>
+	<h1 class="title">C++ 11标准的shared_ptr 智能指针</h1>
+	<div class="entry-content"><h2><strong>shared_ptr是什么?</strong></h2>
 
-<p>目前我厂的Nginx日志统一使用scribe 收集方式. 步骤是先tail -f accesslog 通过unix pipe传给scribe buffer, 后者将收集到的日志流发往中心scribe sink.</p>
+<p>上规模的C/C++项目,都有一个共同问题 - 内存管理.
+飞来飞去的Point, 谁来申请, 谁来释放, 内存泄露了又该找谁? 于是就有了共享指针的想法,也称为智能指针.shared_ptr 就是其一种实现, 它在一块内存上标记一个所有权,说明自己在用. 只要有一个人还申明有&#8221;所有权&#8221;, 内存就不会被释放.</p>
 
-<p>但问题很明显:
-1,整条链依赖于tail的稳定性, 前一阵发生过此类事故, 无奈将tail 改为xtail 之后,暂时稳定.
-2,nginx 所在机器会写一份, 然后tail给scribe, 日志冗余,无法集中.</p>
+<blockquote><p><strong>&#8220;Use shared_ptr as a last resort&#8221;</strong>   <br/>
+<strong>- Bjarne Stroustrup</strong></p></blockquote>
 
-<p>于是开垦荒地. 想到在nginx 进程内直接通过<a href="http://linux.die.net/man/2/pipe">Pipe</a>方式发给scribe.</p>
+<p>这里引用了C++之父说的一句话: &#8220;在万不得已的情况下使用共享指针&#8221;</p>
 
-<pre><code>#include&lt;unistd.h&gt;
-int pipe(int fd[2]);
+<p>这里基于OOP去耦原则,尽量避免内存之间的共享拷贝, 因为一旦出错, 调试将会带来很大的麻烦. 当然, 你也可以考虑使用它的替代品, C++ 11 支持的scoped_ptr, 它会在编译器加以提示.</p>
+
+<h2>基本的 shared_ptr 说明</h2>
+
+<p>C++ TR1 介绍shared_ptr(Boost库), 你可以认为这是一个引用计数指针. 每次有人获取这个指针的&#8221;所有权&#8221;,计数器就会相应的递增. 当这个指针超出范围,或者是明确的调用reset to null,则计数器递减. 当计数器达到0时,它引用的这块内存会被自动回收. 这意味着如果使用shared_ptr持有我们所有的指针,我们可以容易地避免内存访问越界,覆盖,泄露问题.(shared_ptr确保适当的虚函数被调用,前提是你实现了相应的析构函数)</p>
+
+<p>下面是一个小例子，一个shared_ptr：</p>
+
+<pre><code>#include &lt;memory&gt;
+
+using namespace std;
+
+void my_function() {
+    shared_ptr&lt;int&gt; my_ptr(new int(9001));
+    shared_ptr&lt;int&gt; also_ptr = my_ptr;
+    // 内部引用计数为2,这块内存将不会被delete. 
+    // 直到两个 shared_ptrs 都调用了reset()函数, 相当于对引用计数清零释放.
+    my_ptr.reset();
+    also_ptr.reset();
+    // Note: auto-deletion!
+}
 </code></pre>
 
-<p>在这里传递的参数fd[2],是两个文件描述符, 其中fd[0]为读的文件描述符,fd[1]为写的文件
-描述符. 在nginx 父进程中声明了一个管道, 然后执行fork()函数创建一个子进程, 该子进程中保留了一个fd[2]的副本.我在子进程中关闭fd[0], 在父进程中关闭fd[1], 这样我从子进程写入信息,就可以从父进程读出来, 就建立了一个在父进程和子进程之间通信的通道.</p>
-
-<p>假设我想要获取nginx 父进程的标准日志输出, 只需要将父进程的标准输出复制给fd[1],这样我们就可以从子进程中获取父进程的输出了.</p>
-
-<p>这里, 使用了linux 标准的<a href="http://linux.die.net/man/2/dup2">dup2</a>函数..</p>
-
-<pre><code>#include &lt;unistd.h&gt;
-int dup2(int oldfd,int fd);
-</code></pre>
-
-<p>dup2函数规定一个源描述符和目标描述符的id. dup2函数成功返回时,目标描述符(dup2函数的第二个参数)将变成源描述符(dup2函数的第一个参数)的复制品, 类似于两个文件描述符就都指向同一个文件.</p>
-
-<p>其实, 我想做的功能, 在淘宝的<a href="http://tengine.taobao.org/">tengine</a> 中已经实现了.</p>
-
-<p>代码:</p>
-
-<pre><code>    if ((pid = fork()) &lt; 0) {
-        goto err;
-    } else if (pid &gt; 0) { // 父
-        op-&gt;pid = pid;
-
-        if (op-&gt;open_fd-&gt;fd != NGX_INVALID_FILE) {
-            if (close(op-&gt;open_fd-&gt;fd) == NGX_FILE_ERROR)                       {                                                      
-                ngx_log_error(NGX_LOG_EMERG, cycle-&gt;log, ngx_errno,
-                              "close \"%s\" failed",
-                              op-&gt;open_fd-&gt;name.data);
-            }
-        } //如果出错, 通过ngx_log_error方式记录
-        //如果是PIPE方式的WRITE, 关闭fd[0]读描述符. 反之,则为nginx标准写,则关闭写描述符.
-        if (op-&gt;type == NGX_PIPE_WRITE) {
-            op-&gt;open_fd-&gt;fd = op-&gt;pfd[1];
-            close(op-&gt;pfd[0]);
-        } else {
-            op-&gt;open_fd-&gt;fd = op-&gt;pfd[0];
-            close(op-&gt;pfd[1]);
-        }
-    } else {  // 子进程
-        // 这里使用linux dup2标准调用,实现将父进程的输出(也就是子进程的fd[0])复制给STDIN.
-        if (op-&gt;type == 1) {
-            close(op-&gt;pfd[1]);
-            if (op-&gt;pfd[0] != STDIN_FILENO) {
-                dup2(op-&gt;pfd[0], STDIN_FILENO);
-                close(op-&gt;pfd[0]);
-            }
-        } else {
-            close(op-&gt;pfd[0]);
-            if (op-&gt;pfd[1] != STDOUT_FILENO) {
-                dup2(op-&gt;pfd[1], STDOUT_FILENO);
-                close(op-&gt;pfd[1]);
-            }
-        }
-    }
-</code></pre>
-
-<p>具体实现很简洁, 于是我做成patch形式, 打入现版本的Nginx, 测试大约半个月了, 很稳定&#8230;</p>
+<p>使用的shared_ptr有许多细微之处, 最常见的一种是循环引用, 若一个shared_ptr对象指针最终指向自己（反向引用）的情况下, 它就不知道该怎么办了. 可以使用标准库的 weak_ptrs 来避免.</p>
 </div>
 
 
@@ -163,12 +128,12 @@ int dup2(int oldfd,int fd);
   
 
 
-<time datetime="2012-09-05T15:19:00+08:00" pubdate data-updated="true">Sep 5<span>th</span>, 2012</time></div>
+<time datetime="2012-09-27T21:10:00+08:00" pubdate data-updated="true">Sep 27<span>th</span>, 2012</time></div>
 	<div class="tags">
 
 </div>
 	
-		<span class="comments"><a href="/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2012/09/27/c-plus-plus-smart-pointers/#disqus_thread">Comments</a></span>
 	
 </div>
   <footer>
@@ -190,7 +155,7 @@ int dup2(int oldfd,int fd);
   
 
 
-<time datetime="2012-09-05T15:19:00+08:00" pubdate data-updated="true">Sep 5<span>th</span>, 2012</time>
+<time datetime="2012-09-27T21:10:00+08:00" pubdate data-updated="true">Sep 27<span>th</span>, 2012</time>
       
 
 
@@ -203,7 +168,7 @@ int dup2(int oldfd,int fd);
   <div class="addthis_toolbox addthis_default_style ">
   
      
-        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/" >Tweet</a>
+        <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://xuanhan863.github.com/blog/2012/09/27/c-plus-plus-smart-pointers/" data-via="" data-counturl="http://xuanhan863.github.com/blog/2012/09/27/c-plus-plus-smart-pointers/" >Tweet</a>
      
      
      
@@ -213,10 +178,8 @@ int dup2(int oldfd,int fd);
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2012/09/05/%5B%3F%5D-ge-jian-dan-qing-liang-ji-de-ren-wu-dui-lie/" title="Previous Post: 又一个简单轻量级的任务队列">&laquo; 又一个简单轻量级的任务队列</a>
+        <a class="basic-alignment left" href="/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/" title="Previous Post: 将Nginx的日志流重定向到Pipe另一端">&laquo; 将Nginx的日志流重定向到Pipe另一端</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2012/09/27/c-plus-plus-smart-pointers/" title="Next Post: C++ 11标准的shared_ptr 智能指针">C++ 11标准的shared_ptr 智能指针 &raquo;</a>
       
     </p>
   </footer>
@@ -316,8 +279,8 @@ int dup2(int oldfd,int fd);
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/';
-        var disqus_url = 'http://xuanhan863.github.com/blog/2012/09/05/jiang-nginxde-ri-zhi-liu-zhong-ding-xiang-dao-pipeling-%5B%3F%5D-duan/';
+        var disqus_identifier = 'http://xuanhan863.github.com/blog/2012/09/27/c-plus-plus-smart-pointers/';
+        var disqus_url = 'http://xuanhan863.github.com/blog/2012/09/27/c-plus-plus-smart-pointers/';
         var disqus_script = 'embed.js';
       
     (function () {
