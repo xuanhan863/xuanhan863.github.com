@@ -4,7 +4,7 @@
   <title><![CDATA[huoxu.me]]></title>
   <link href="http://xuanhan863.github.com/atom.xml" rel="self"/>
   <link href="http://xuanhan863.github.com/"/>
-  <updated>2012-10-07T22:50:22+08:00</updated>
+  <updated>2012-10-28T22:28:00+08:00</updated>
   <id>http://xuanhan863.github.com/</id>
   <author>
     <name><![CDATA[Tony.lee]]></name>
@@ -12,6 +12,56 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Some patterns for fast Python.]]></title>
+    <link href="http://xuanhan863.github.com/blog/2012/10/28/some-patterns-for-fast-python/"/>
+    <updated>2012-10-28T21:52:00+08:00</updated>
+    <id>http://xuanhan863.github.com/blog/2012/10/28/some-patterns-for-fast-python</id>
+    <content type="html"><![CDATA[<p><strong>Python 之父Guido van Rossum 在google+ 上提到的对于python性能方面的tips..</strong></p>
+
+<pre><code>1,尽可能避免过度设计的数据结构, 相比较对象, 从性能方面考虑, 不妨试试namedtuple.
+
+2,内置的数据类型是你的朋友. 使用更多的内置类型, 如数字、字符串、tuple、list、set、dict. 可以试试collections集合包, 特别是双端队列(deque) -- 这里常用来取top N. 
+
+3,怀疑函数/方法调用; 创建一个调用堆栈的代价往往比较昂贵.
+
+4,不要在Python 里写Java(或c++,或Javascript,…)代码. -- 试图优化
+
+5,你确定脚本运行太慢? 那么在准备优化前,先做Profile(cProfile) ..
+
+6,所有办法都尝试了, 但并没有多大的性能提升..  那只能上终极利器, 写个C扩展(或cython吧)..
+</code></pre>
+
+<p>原文在此:
+<a>https://plus.google.com/u/0/115212051037621986145/posts/HajXHPGN752</a></p>
+
+<p><strong> deque的一个归并排序的用例.. 欢迎拍砖.</strong></p>
+
+<pre><code>def Merge(left, right):
+    ret=[]
+    while len(left) &gt; 0 or len(right) &gt; 0:
+        if len(left) &gt; 0 and len(right) &gt; 0:
+            if left[0] &lt;= right[0]:
+                ret.append(left.popleft())
+            else:       
+                ret.append(right.popleft())
+        elif len(left) &gt; 0:
+            ret.append(left.popleft())
+        elif len(right) &gt; 0:
+            ret.append(right.popleft())
+    return ret 
+
+def MergeSort(S):
+    if len(S) &lt;= 1:                    
+        return S
+    q = len(S)/2
+    left = MergeSort(S[:q])
+    right = MergeSort(S[q:])                                        
+    return Merge(deque(left), deque(right))
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[C++ 11标准的shared_ptr 智能指针]]></title>
